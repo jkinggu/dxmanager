@@ -1,0 +1,8 @@
+package com.dx.dxmanage.service;
+
+import java.util.Set;
+
+public interface IRoleService {
+	// 根据用户id查询用户角色类型
+	Set<String> selectRoleByUserId(Long uid);
+}

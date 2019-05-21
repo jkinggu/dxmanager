@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.GoodsMapper">
+	<resultMap id="BaseResultMap" type="com.dx.dxmanage.po.Goods">
+		<id column="goodsid" jdbcType="INTEGER" property="goodsid" />
+		<result column="goodsname" jdbcType="VARCHAR" property="goodsname" />
+		<result column="price" jdbcType="DOUBLE" property="price" />
+		<result column="unit" jdbcType="VARCHAR" property="unit" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+	</resultMap>
+	<!--此mapper开启二级缓存 -->
+	<cache />
+	<sql id="Base_Column_List">
+		goodsid, goodsname, price,unit, description
+	</sql>
+	<!-- 根据主键商品id查询商品信息 -->
+	<select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from goodsinfo
+		where goodsid = #{goodsid,jdbcType=INTEGER}
+	</select>
+	<!-- 查询所有商品 -->
+	<select id="selectAllGoods" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from goodsinfo order by goodsid desc 
+	</select>
+	<!-- 根据主键goodsid删除商品信息 -->
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		goodsinfo
+		where goodsid = #{goodsid,jdbcType=INTEGER}
+	</delete>
+	<insert id="insertGoods" parameterType="com.dx.dxmanage.po.Goods">
+		insert into goodsinfo
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="goodsid != null">
+				goodsid,
+			</if>
+			<if test="goodsname != null">
+				goodsname,
+			</if>
+			<if test="price != null">
+				price,
+			</if>
+			<if test="unit != null">
+				unit,
+			</if>
+			<if test="description != null">
+				description,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="goodsid != null">
+				#{goodsid,jdbcType=INTEGER},
+			</if>
+			<if test="goodsname != null">
+				#{goodsname,jdbcType=VARCHAR},
+			</if>
+			<if test="price != null">
+				#{price,jdbcType=DOUBLE},
+			</if>
+			<if test="unit != null">
+				#{unit,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				#{description,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<update id="updateByPrimaryKeySelective" parameterType="com.dx.dxmanage.po.Goods">
+		update goodsinfo
+		<set>
+			<if test="goodsname != null">
+				goodsname = #{goodsname,jdbcType=VARCHAR},
+			</if>
+			<if test="price != null">
+				price = #{price,jdbcType=DOUBLE},
+			</if>
+			<if test="unit != null">
+				unit = #{unit,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				description = #{description,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where goodsid = #{goodsid,jdbcType=INTEGER}
+	</update>
+</mapper>

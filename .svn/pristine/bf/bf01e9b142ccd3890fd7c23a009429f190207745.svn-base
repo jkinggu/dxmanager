@@ -1,0 +1,62 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%--shiro 标签 --%>
+<%@taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>角色设置</title>
+<link rel="stylesheet" href="<%=basePath%>/plugins/layui/css/layui.css">
+<style>
+body {
+	margin: 20px;
+}
+
+.layui-input-block {
+	margin-left: 50px;
+}
+</style>
+
+</head>
+<body>
+	<form class="layui-form">
+		<input type='hidden' id='userid' value='${userid }'>
+		<c:forEach items='${roles }' var='role'>
+			<div class="layui-form-item" pane="">
+				<div class="layui-input-block">
+					<input type="checkbox" name="role" lay-skin="primary"
+						title="${role.name }" value='${role.id }'>
+				</div>
+			</div>
+		</c:forEach>
+		<div class="layui-form-item">
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="updateTicketForm">确定</button>
+			</div>
+		</div>
+	</form>
+	<script type="text/javascript"
+		src="<%=basePath%>/js/jquery-1.11.0.min.js"></script>
+	<script src="<%=basePath%>/plugins/layui/layui.js"></script>
+	<script src="<%=basePath%>/js/wdf/sysuser.js"></script>
+	<script>
+		layui.use([ 'form' ], function() {
+			var form = layui.form;
+			//监听提交
+			form.on('submit(updateTicketForm)', function(data) {
+				updateTicket(data.field);
+				return false;//阻止表单跳转。如果需要表单跳转，去掉这段即可。
+			});
+		});
+	</script>
+</body>
+</html>

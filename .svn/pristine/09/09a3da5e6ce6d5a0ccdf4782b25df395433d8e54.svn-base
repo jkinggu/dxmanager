@@ -1,0 +1,51 @@
+package com.dx.dxmanage.util;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.springframework.web.multipart.MultipartFile;
+
+/**
+ * @author fang
+ *
+ * @Date 2018年11月7日
+ *
+ *       项目名 mecvip
+ *
+ * @version 1.0
+ */
+
+public class FileLoadClient {
+	/**
+	 * param file 需要上传的文件
+	 * 
+	 * param url 目标地址
+	 * 
+	 * param fileName 新文件名
+	 * 
+	 * return String “300”代表源文件为空；“200”代表上传成功;“500”代表上传失败
+	 * 
+	 */
+	public static String uploadPic(MultipartFile file, String url, String fileName) {
+		File targetFile = null;
+		String result = "";
+		// 判断接收是否为空
+		if (file.isEmpty()) {
+			result = "300";
+			return result;
+		}
+		// 创建存储文件路径
+		CreateFileUtil.createDir(url);
+		// CreateFileUtil.createFile(url + fileName);
+		File fileDir = new File(url);
+		targetFile = new File(fileDir, fileName);
+		try {
+			file.transferTo(targetFile);
+			result = "200";
+		} catch (Exception e) {
+			e.printStackTrace();
+			result = "400";
+		}
+		return result;
+	}
+}

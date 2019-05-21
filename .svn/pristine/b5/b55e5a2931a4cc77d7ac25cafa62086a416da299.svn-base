@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.PaymentMapper">
+	<resultMap id="BaseResultMap"
+		type="com.dx.dxmanage.po.Payment">
+		<id column="paymentid" jdbcType="INTEGER" property="paymentid" />
+		<result column="transdate" jdbcType="VARCHAR"
+			property="transdate" />
+		<result column="paynum" jdbcType="VARCHAR" property="paynum" />
+		<result column="received" jdbcType="DOUBLE" property="received" />
+		<result column="paid" jdbcType="DOUBLE" property="paid" />
+		<result column="balance" jdbcType="DOUBLE" property="balance" />
+		<result column="charge" jdbcType="DOUBLE" property="charge" />
+		<result column="dealstyle" jdbcType="VARCHAR"
+			property="dealstyle" />
+		<result column="bankname" jdbcType="VARCHAR"
+			property="bankname" />
+		<result column="banknum" jdbcType="VARCHAR" property="banknum" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="summary" jdbcType="VARCHAR" property="summary" />
+		<result column="postscript" jdbcType="VARCHAR"
+			property="postscript" />
+	</resultMap>
+	<!--此mapper开启二级缓存 -->
+	<!-- <cache /> -->
+	<sql id="Base_Column_List">
+		payment.paymentid, transdate, paynum, received, paid,
+		balance,
+		charge, dealstyle,
+		bankname,
+		banknum, name, remark, summary,
+		postscript
+	</sql>
+	<!-- 通过主键paymentid查询流水信息 -->
+	<select id="selectByPrimaryKey"
+		parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from paymentinfo
+		where paymentid = #{paymentid,jdbcType=INTEGER}
+	</select>
+
+	<!-- 查询所有流水信息 -->
+	<select id="selectAllPayment" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from paymentinfo payment
+		<choose>
+			<when test="1==1">
+				left join spinfo sp on payment.paymentid =
+				sp.paymentid 
+			</when>
+		</choose>
+
+		<where>
+			<choose>
+				<when test="1==1">
+					sp.paymentid is NULL
+				</when>
+				<when test="transdate!=null">
+					test="transdate!=null"
+				</when>
+				<otherwise>
+					1=1
+				</otherwise>
+			</choose>
+
+		</where>
+		order by transdate desc
+	</select>
+
+	<!-- 根据日期范围查询流水信息 -->
+	<select id="selectPaymentBydateScope" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from paymentinfo
+		where transdate BETWEEN #{date1,jdbcType=VARCHAR} AND
+		#{date2,jdbcType=VARCHAR};
+	</select>
+	<!-- 根据日期范围且支出金额paid=0查询流水信息 -->
+	<select id="selectPaymentListydateScopeAndPaid"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from paymentinfo
+		where transdate BETWEEN #{date1,jdbcType=VARCHAR} AND
+		#{date2,jdbcType=VARCHAR} And paid = 0.0;
+	</select>
+
+	<!-- 根据银行流水详细时间查询流水信息 -->
+	<select id="selectPaymentByPaynum" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from paymentinfo
+		where paynum = #{paynum,jdbcType=VARCHAR}
+	</select>
+	<!-- 根据主键paymentid删除流水信息 -->
+	<delete id="deleteByPaymentid" parameterType="java.lang.Integer">
+		delete from
+		paymentinfo
+		where paymentid = #{paymentid,jdbcType=INTEGER}
+	</delete>
+	<!-- 添加流水信息 -->
+	<insert id="insertPayment"
+		parameterType="com.dx.dxmanage.po.Payment">
+		insert into paymentinfo
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="paymentid != null">
+				paymentid,
+			</if>
+			<if test="transdate != null">
+				transdate,
+			</if>
+			<if test="paynum != null">
+				paynum,
+			</if>
+			<if test="received != null">
+				received,
+			</if>
+			<if test="paid != null">
+				paid,
+			</if>
+			<if test="balance != null">
+				balance,
+			</if>
+			<if test="charge != null">
+				charge,
+			</if>
+			<if test="dealstyle != null">
+				dealstyle,
+			</if>
+			<if test="bankname != null">
+				bankname,
+			</if>
+			<if test="banknum != null">
+				banknum,
+			</if>
+			<if test="name != null">
+				name,
+			</if>
+			<if test="remark != null">
+				remark,
+			</if>
+			<if test="summary != null">
+				summary,
+			</if>
+			<if test="postscript != null">
+				postscript,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="paymentid != null">
+				#{paymentid,jdbcType=INTEGER},
+			</if>
+			<if test="transdate != null">
+				#{transdate,jdbcType=VARCHAR},
+			</if>
+			<if test="paynum != null">
+				#{paynum,jdbcType=VARCHAR},
+			</if>
+			<if test="received != null">
+				#{received,jdbcType=DOUBLE},
+			</if>
+			<if test="paid != null">
+				#{paid,jdbcType=DOUBLE},
+			</if>
+			<if test="balance != null">
+				#{balance,jdbcType=DOUBLE},
+			</if>
+			<if test="charge != null">
+				#{charge,jdbcType=DOUBLE},
+			</if>
+			<if test="dealstyle != null">
+				#{dealstyle,jdbcType=VARCHAR},
+			</if>
+			<if test="bankname != null">
+				#{bankname,jdbcType=VARCHAR},
+			</if>
+			<if test="banknum != null">
+				#{banknum,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				#{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="summary != null">
+				#{summary,jdbcType=VARCHAR},
+			</if>
+			<if test="postscript != null">
+				#{postscript,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<update id="updateByPrimaryKeySelective"
+		parameterType="com.dx.dxmanage.po.Payment">
+		update paymentinfo
+		<set>
+			<if test="transdate != null">
+				transdate = #{transdate,jdbcType=VARCHAR},
+			</if>
+			<if test="paynum != null">
+				paynum = #{paynum,jdbcType=VARCHAR},
+			</if>
+			<if test="received != null">
+				received = #{received,jdbcType=DOUBLE},
+			</if>
+			<if test="paid != null">
+				paid = #{paid,jdbcType=DOUBLE},
+			</if>
+			<if test="balance != null">
+				balance = #{balance,jdbcType=DOUBLE},
+			</if>
+			<if test="charge != null">
+				charge = #{charge,jdbcType=DOUBLE},
+			</if>
+			<if test="dealstyle != null">
+				dealstyle = #{dealstyle,jdbcType=VARCHAR},
+			</if>
+			<if test="bankname != null">
+				bankname = #{bankname,jdbcType=VARCHAR},
+			</if>
+			<if test="banknum != null">
+				banknum = #{banknum,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				remark = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="summary != null">
+				summary = #{summary,jdbcType=VARCHAR},
+			</if>
+			<if test="postscript != null">
+				postscript = #{postscript,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where paymentid = #{paymentid,jdbcType=INTEGER}
+	</update>
+
+</mapper>

@@ -1,0 +1,357 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%@taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>销售管理</title>
+<link rel="stylesheet" href="plugins/layui/css/layui.css">
+<script src="${pageContext.request.contextPath}/js/jquery-1.11.0.min.js"></script>
+<style>
+body {
+	margin: 10px;
+}
+
+.demo-carousel {
+	height: 200px;
+	line-height: 200px;
+	text-align: center;
+}
+
+.layui-form-checkbox {
+	margin-right: 0px;
+}
+</style>
+</head>
+<body>
+	<blockquote class="layui-elem-quote news_search">
+		<div class="layui-inline demoTable">
+			<div class="layui-input-inline">
+				<input value='' placeholder="请输入客户名称" class="layui-input "
+					id="receiptInput" autocomplete="off">
+			</div>
+
+			<!-- <div class="layui-inline">
+				<input type='checkbox' name='notGetMoney' id='notGetMoney'
+					style='margin-left: 10px' lay-skin="primary"><span>未对账</span>
+			</div>
+			<div class="layui-inline">
+				<input type='checkbox' name='notGetMoney' id='notGetMoney'
+					style='margin-left: 10px' lay-skin="primary"><span>已开票</span>
+			</div> -->
+			<span class="layui-form"> <input type="checkbox"
+				name="notGetMoney" id='notGetMoney' title="未对账"> <input
+				type="checkbox" name="haveTicket" id='haveTicket' title="已开票">
+			</span>
+			<button class="layui-btn" data-type="reload" id="sales_search">搜索</button>
+		</div>
+		<shiro:hasRole name="0">
+			<div class="layui-inline">
+				<a class="layui-btn layui-btn-normal newsAdd_btn" id="spbill"
+					onclick="spbill()">账目校对</a>
+			</div>
+		</shiro:hasRole>
+
+	</blockquote>
+
+	<table class="layui-hide" id="salesTable" lay-filter="sales"></table>
+	<div id='checkAcounts' style='display: none'>
+
+		<blockquote class="layui-elem-quote "
+			style='margin-bottom: 0px; border-left: 0px; position: fixed; left: 580px; top: 10px; z-index: 10000'>
+			<div class="layui-input-inline" style="margin-left: 15px;">
+				<label>应付金额</label> <input type="text" id="payMoney"
+					style='width: 60px; height: 25px;' readonly>
+			</div>
+			<div class="layui-input-inline" style="margin-left: 15px;">
+				<label>到账金额</label> <input type="text" id="receiveMoney"
+					style='width: 60px; height: 25px;' readonly>
+			</div>
+			<div class="layui-input-inline" style="margin-left: 15px;">
+				<a class="layui-btn " lay-event="" id='checkAccounts'>对账</a>
+			</div>
+		</blockquote>
+		<table class="layui-hide" id="paymentTable" lay-filter="payment"></table>
+	</div>
+	<script type="text/html" id="salesBar">
+  <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+  <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+	<script type="text/html" id="credentionalsTemplet">
+ {{# var paycredentials=d.paycredentials }}
+    {{# if (paycredentials==null||paycredentials==''){ }}
+    <a>无凭证</a>
+    {{# } else{ }}
+ <a href="javascript:checkCredentials('{{d.paycredentials}}');"  class="layui-table-link">
+	<img style='width:60px;height:60px;'  src='{{d.paycredentials}}' lay-src='{{d.paycredentials}}' ></a>
+     
+    {{# } }}
+	</script>
+	<script type="text/html" id='salesToolbar'>
+<div class="layui-inline" lay-event="update" title='编辑'><i class="layui-icon layui-icon-edit"></i></div>
+<div class="layui-inline" lay-event="delete" title='删除'><i class="layui-icon layui-icon-delete"></i></div>
+	</script>
+	<script src="<%=basePath%>/plugins/layui/layui.js"></script>
+	<script src="<%=basePath%>/js/wdf/sales.js"></script>
+
+	<script>
+	var salesTable;
+		var payMoney
+		var receiveMoney;
+		var salesids ;
+		var paymentids ;
+		layui
+				.use(
+						[ 'form', 'laydate', 'layer', 'table', 'upload',
+								'element' ],
+						function() {
+							var laydate = layui.laydate // 日期
+							, layer = layui.layer // 弹层
+							, upload = layui.upload // 上传
+							, element = layui.element // 元素操作
+							, $ = layui.$;
+							 table = layui.table;
+							// 执行一个 table 实例
+									salesTable = table.render({
+										elem : '#salesTable',
+										//height : 530,
+										url : 'sales/selectAllSales.dx',// 数据接口
+										title : '销售信息详情表',
+										//cellMinWidth : 70, //全局定义常规单元格的最小宽度
+										page : true,// 开启分页
+										toolbar : '#salesToolbar', // 开启工具栏
+										id : 'salesTableId',
+										limits : [ 5, 10, 20, 30, 40, 50 ],
+										limit : 10, //每页默认显示的数量
+										loading : true,
+										cols : [ [ // 表头
+												{align : 'center',type : 'checkbox',fixed : 'left'}
+												,{align : 'center',field : 'salesid',title : 'ID',width : 50,sort : true}
+												,{align : 'center',field : 'salesdate',title : '销售时间',sort : true,width : 105}
+												,{align : 'center',field : 'goods',templet : '<div>{{d.goods.goodsname}}</div>',title : '商品名称',width : 280}
+												,{align : 'center',field : 'amount',title : '总金额',width : 90}
+												,{align : 'center',field : 'receipt',title : '开票名称',width : 280}
+												,{align : 'center',field : 'customer',templet : '<div>{{d.customer.creditcode}}</div>',title : '信用代码'}
+												,{align : 'center',field : 'linkman',title : '姓名'}
+												,{align : 'center',field : 'tel',title : '联系方式'}
+												,{align : 'center',field : 'email',	title : '邮箱'}
+												,{align : 'center',field : 'ticketnum',title : '发票号码',width : 100}
+												,{align : 'center',field : 'payment',title : '支付方式',width : 90}
+												,{align : 'center',field : 'paycredentials',templet : "#credentionalsTemplet",title : '支付凭证',width : 90}
+												,{align : 'center',title:'备注',field : 'note',fixed : 'right'}
+												] ]
+									});
+
+							// 执行一个 流水table 实例
+							table.render({
+								elem : '#paymentTable',
+								url : 'payment/selectAllPayment.dx',// 数据接口
+								title : '销售信息详情表',
+								page : true,// 开启分页
+								id : 'paymentTableId',
+								limits : [ 5, 10, 20, 30, 40, 50 ],
+								limit : 10, //每页默认显示的数量
+								loading : true,
+								cols : [ [ // 表头
+								{align : 'center',type : 'checkbox',fixed : 'left'}
+								,{align : 'center',field : 'transdate',	title : '交易日期',sort : true,width : 105}
+								,{align : 'center',field : 'paynum',title : '交易时间戳'}
+								,{align : 'center',field : 'received',title : '收入金额'}
+								,{align : 'center',field : 'bankname',title : '交易行名'}
+								,{align : 'center',field : 'banknum',title : '开户行账号'}
+								,{align : 'center',field : 'name',title : '开户人户名'}
+								,{align : 'center',field : 'postscript',title : '交易附言'} 
+								] ]
+							});
+							active = {
+								reload : function() {
+									//执行重载
+									table.reload('salesTableId', {
+										where : {
+											"receipt" : $('#receiptInput').val().replace(/[ ]/g, ""),//忽略空格
+											"notGetMoney" : $('#notGetMoney').prop('checked'),
+											"haveTicket":$('#haveTicket').prop('checked'),
+										}
+									});
+								}
+								
+							};
+							$('#sales_search').on('click', function() {
+								var type = $(this).data('type');
+								active[type] ? active[type].call(this) : '';
+							});
+							
+							
+							// 监听头工具栏事件
+							table
+									.on(
+											'toolbar(sales)',
+											function(obj) {
+												var checkStatus = table
+														.checkStatus(obj.config.id), data = checkStatus.data; // 获取选中的数据
+												switch (obj.event) {
+												case 'add':
+													aadSalesForm('新增销售记录');
+													break;
+												case 'update'	:
+													if (data.length === 0) {
+														layer.msg('请选择一行');
+													} else if (data.length > 1) {
+														layer.msg('只能同时编辑一个');
+													} else {
+														newSalesid = data[0].salesid;
+														newSalesdate = data[0].salesdate;
+														newTicketnum = data[0].ticketnum;
+														newGoodsid = data[0].goodsid;
+														newReceipt = data[0].receipt;
+														newCustomername = data[0].customer.customername;
+														newAgent = data[0].linkman;
+														newMobile = data[0].tel;
+														newAmount = data[0].amount;
+														newPayment = data[0].payment;
+														newPaycredentials = data[0].paycredentials;
+														newNote = data[0].note;
+														aadSalesForm('更新销售信息',
+																data);
+
+													}
+													break;
+												case 'delete':
+													if (data.length === 0) {
+														layer.msg('请选择一行');
+													} else {
+														layer.confirm('确定删除?', function(index) {
+															$.ajax({
+																type : "post",
+																url : "sales/deleteSales.dx",
+																dataType : "json",
+																data : {
+																	'salesid' : data[0].salesid
+																},
+																async : false,
+																success : function(msg) {
+																	if (msg == 1) {
+																		layer.msg('删除成功', {
+																			icon : 1
+																		})
+																		//刷新父页面销售数据表格
+																		table.reload('salesTableId');
+																	} else {
+																		layer.msg('删除失败', {
+																			icon : 2
+																		})
+																	}
+																},
+																error : function() {
+																	layer.msg('网络异常，请重新操作', {
+																		icon : 5
+																	})
+																}
+															});
+														});
+													}
+													break;
+												}
+												;
+											});
+
+							//监听单元格编辑
+							table.on('edit(sales)', function(obj) {
+								var value = obj.value //得到修改后的值
+								, data = obj.data //得到所在行所有键值
+								, field = obj.field; //得到字段
+								layer.msg('[单位名称: ' + data.customername + '] '
+										+ field + ' 字段更改为：' + value);
+							});
+							  
+							
+							// 对账之获取客户应付金额
+							table.on('checkbox(sales)',function(obj){
+								var checkStatus = table.checkStatus('salesTableId');
+								data = checkStatus.data;
+								payMoney = 0;
+								salesids = null;
+								for(var p in data){
+									var v1 = parseFloat(data[p].amount);
+									salesids = salesids + "-" + data[p].salesid;// 获取所有被选中的销售记录的销售编号salesid
+									payMoney = payMoney + v1;
+								}
+								if(checkStatus.length==0){
+									$('#payMoney').val(0);
+								}else{
+									$("#payMoney").val(payMoney);
+								}
+								
+							})
+							// 对账之获取银行账户到账金额
+							table.on('checkbox(payment)',function(obj){
+								var checkStatus = table.checkStatus('paymentTableId');
+								data = checkStatus.data;
+								receiveMoney = 0;
+								paymentids = null;
+								for(var p in data){
+									var v2 = parseFloat(data[p].received);
+									paymentids = paymentids + "-" +data[p].paymentid;// 获取所有被选中的银行张混流水记录的流水编号paymentid
+									receiveMoney = receiveMoney + v2;
+								}
+								if(checkStatus.length==0){
+									$('#receiveMoney').val(0);
+								}else{
+									$("#receiveMoney").val(receiveMoney);
+								}
+								
+							})
+							$('#checkAccounts').on('click', function() {
+								if(salesids==null){
+									layer.msg('请选择销售记录')
+									return
+								}
+								if(paymentids==null){
+									layer.msg('请选则银行流水记录')
+									return
+								}
+								if(payMoney!=receiveMoney){
+									layer.msg('金额数目不匹配',{icon:2})
+									return
+								}
+								//将id对应关系插入销售-流水记录表
+									layer.confirm('确认校对?',function(){
+									$.ajax({
+										type : "post",
+										url : "insertSP.dx",
+										data : {
+											"salesids" : salesids,
+											"paymentids" : paymentids
+										},
+										success : function(msg) {
+											layer.msg("核对成功", {
+												icon : 1
+											});
+											table.reload('salesTableId');
+											table.reload('paymentTableId');
+										},
+										error : function() {
+											layer.msg('核对失败', {
+												icon : 2
+											});
+										}
+							
+									});
+								})
+								
+							});
+							
+
+						});
+	</script>
+</body>
+</html>

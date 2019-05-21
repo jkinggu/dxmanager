@@ -1,0 +1,14 @@
+package com.dx.dxmanage.service;
+
+import java.util.List;
+
+import com.dx.dxmanage.po.SP;
+
+public interface ISPService {
+
+	// 新增销售与银行流水的对应记录
+	int insertSelective(SP record);
+
+	// 根据销售记录id查询对账记录
+	List<SP> selectSpsBySid(Integer sid);
+}

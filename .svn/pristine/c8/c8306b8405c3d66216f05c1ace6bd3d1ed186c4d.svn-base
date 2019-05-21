@@ -1,0 +1,256 @@
+package com.dx.dxmanage.handler;
+
+
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dx.dxmanage.po.Customer;
+import com.dx.dxmanage.service.ICustomerService;
+import com.dx.dxmanage.util.DateUtil;
+import com.dx.dxmanage.util.Encode;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
+@Controller
+@RequestMapping("customer")
+public class CustomerHandler {
+	@Resource
+	private ICustomerService customerService;
+
+	// 查询所有单位
+	@RequestMapping("selectAllCustomer.dx")
+	@ResponseBody
+	public Map<String, Object> selectAllCustomer(int page, int limit, String membership, String codeOrName) {
+		PageHelper.startPage(page, limit);
+		PageInfo<Customer> pageInfo = null;
+		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			resultMap.put("membership", membership);
+			resultMap.put("codeOrName", codeOrName);
+			pageInfo = new PageInfo<Customer>(customerService.selectAllCustomer(resultMap));
+			map.put("code", 0);
+			map.put("msg", "汪登峰");
+			map.put("count", pageInfo.getTotal());
+			map.put("data", pageInfo.getList());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+
+	/**
+	 * 
+	 * 返回授权页面（页面显示当前单位及其子单位）
+	 * 
+	 */
+	@RequestMapping("getShouquanPage.dx")
+	public ModelAndView getShouquanPage(Customer customer) {
+		ModelAndView mav = new ModelAndView();
+		try {
+			String year = DateUtil.getDate(new Date(), "yyyy");// 获取今年份
+			int yearNow = Integer.parseInt(year);
+			int yearNowP1 = yearNow - 1;
+			int yearNowP2 = yearNow - 2;
+			int yearNowN1 = yearNow + 1;
+			int yearNowN2 = yearNow + 2;
+			int yearNowN3 = yearNow + 3;
+			int yearNowN4 = yearNow + 4;
+			mav.addObject("yearNow", yearNow);
+			mav.addObject("yearNowP1", yearNowP1);
+			mav.addObject("yearNowP2", yearNowP2);
+			mav.addObject("yearNowN1", yearNowN1);
+			mav.addObject("yearNowN2", yearNowN2);
+			mav.addObject("yearNowN3", yearNowN3);
+			mav.addObject("yearNowN4", yearNowN4);
+			mav.addObject("customer", customer);
+			mav.setViewName("customer/shouquanPage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mav;
+	}
+
+	// 查询所有单位
+	@RequestMapping("selectCus.dx")
+	@ResponseBody
+	public Map<String, Object> selectCus(String membership, String code, String name) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			String msString = Encode.BASE64ToUtf8(membership);
+			String nameString = Encode.BASE64ToUtf8(name.replaceAll(" ", "+"));
+			Customer customer = customerService.selectCusByMemberAndCode(msString, code);
+			if (customer == null) {// 当系统中不存在此单位
+				resultMap.put("code", "400");
+				resultMap.put("msg", "系统中无此单位");
+			} else {
+				if (nameString.equals(customer.getCustomername())) {
+					resultMap.put("code", "200");
+					resultMap.put("msg", customer.getTimelimit());
+				} else {// 当系统中存在此 单位，但系统中单位名称≠提供的name
+					resultMap.put("code", "300");
+					resultMap.put("msg", "此单位名称与系统中不一致");
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("code", "500");
+			resultMap.put("msg", "查询此单位使用年限失败");
+		}
+		return resultMap;
+	}
+
+	// 根据主键客户id查询客户信息
+	@RequestMapping("selectCustomerByCid.dx")
+	@ResponseBody
+	public Customer selectCustomer(Integer customerid) {
+		Customer customer = null;
+		try {
+			customer = customerService.selectByCustomerid(customerid);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return customer;
+	}
+
+	@RequestMapping("selectSubCMaxCode.dx")
+	@ResponseBody
+	public String selectSubCMaxCode(String membership, String customercode) {
+		String code = null;
+		try {
+			code = customerService.selectSubCMaxCode(membership, customercode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return code;
+
+	}
+
+	// 分级查询所有单位，建立树形菜单导航
+	@RequestMapping("selectPartCustomerList.dx")
+	public Map<String, Object> selectPartCustomerList() {
+		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> resultMap = new HashMap<>();
+		List<Customer> list = new ArrayList<>();
+		try {
+			map.put("membership", "membership");
+			map.put("customercode", "customercode");
+			list = customerService.selectPartCustomerList(map);
+			resultMap.put("data", list);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	// 获取所有县区
+	@RequestMapping("selectAllMembership.dx")
+	@ResponseBody
+	public List<String> selectAllMembership() {
+		List<String> list = new ArrayList<>();
+		try {
+			list = customerService.selectMembership();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return list;
+
+	}
+
+	// 新增单位信息
+	@RequestMapping("addCustomer.dx")
+	@ResponseBody
+	public int addCustomerinfo(Customer customer) {
+		int a = 0;
+		try {
+			a = customerService.insertSelective(customer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+	}
+
+	// 删除单位信息
+	@RequestMapping("deleteByPrimaryKey.dx")
+	@ResponseBody
+	public Integer deleteByPrimaryKey(Integer customerid) {
+		Integer a = 0;
+		try {
+			a = customerService.deleteByPrimaryKey(customerid);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+
+	}
+
+	// 返回客户编辑页面，并返回客户信息
+	@RequestMapping(value = "editCustomer.dx", method = RequestMethod.GET)
+	public ModelAndView editCustomer(Integer customerid) {
+		ModelAndView mav = new ModelAndView();
+		Customer customer = null;
+		try {
+			customer = customerService.selectByCustomerid(customerid);
+			mav.addObject("customer", customer);
+			mav.setViewName("customer/editCustomerForm");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mav;
+
+	}
+
+	// 接收客户实体，更新客户信息
+	@RequestMapping("updateCustomer.dx")
+	@ResponseBody
+	public int updateCustomer(Customer customer) {
+		Integer a = 0;
+		try {
+			a = customerService.updateCustomer(customer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+
+	}
+
+	// 批量修改客户授权年限
+	@RequestMapping("updateCTimelimit.dx")
+	@ResponseBody
+	public Map<String, Object> updateCTimelimit(@RequestParam(value = "cusIds[]") Integer[] cusIds, String timelimit) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			for (int cid : cusIds) {
+				Customer customer = new Customer();
+				customer.setCustomerid(cid);
+				customer.setTimelimit(timelimit);
+				customerService.updateCustomer(customer);
+			}
+			resultMap.put("code", 200);
+			resultMap.put("msg", "成功授权" + cusIds.length + "个单位");
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("code", 400);
+			resultMap.put("msg", "授权失败");
+		}
+		return resultMap;
+
+	}
+
+}

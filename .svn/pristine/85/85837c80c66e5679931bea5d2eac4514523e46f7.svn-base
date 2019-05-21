@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.SPMapper">
+  <resultMap id="BaseResultMap" type="com.dx.dxmanage.po.SP">
+    <id column="spid" jdbcType="INTEGER" property="spid" />
+    <result column="salesid" jdbcType="INTEGER" property="salesid" />
+    <result column="paymentid" jdbcType="INTEGER" property="paymentid" />
+  </resultMap>
+  <!--此mapper开启二级缓存 -->
+	<cache />
+  <sql id="Base_Column_List">
+    spid, salesid, paymentid
+  </sql>
+  
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from spinfo
+    where spid = #{spid,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from spinfo
+    where spid = #{spid,jdbcType=INTEGER}
+  </delete>
+
+ <!--  新增销售与银行流水的对应记录 -->
+  <insert id="insertSelective" parameterType="com.dx.dxmanage.po.SP">
+    insert into spinfo
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="spid != null">
+        spid,
+      </if>
+      <if test="salesid != null">
+        salesid,
+      </if>
+      <if test="paymentid != null">
+        paymentid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="spid != null">
+        #{spid,jdbcType=INTEGER},
+      </if>
+      <if test="salesid != null">
+        #{salesid,jdbcType=INTEGER},
+      </if>
+      <if test="paymentid != null">
+        #{paymentid,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  
+  <update id="updateByPrimaryKeySelective" parameterType="com.dx.dxmanage.po.SP">
+    update spinfo
+    <set>
+      <if test="salesid != null">
+        salesid = #{salesid,jdbcType=INTEGER},
+      </if>
+      <if test="paymentid != null">
+        paymentid = #{paymentid,jdbcType=INTEGER},
+      </if>
+    </set>
+    where spid = #{spid,jdbcType=INTEGER}
+  </update>
+ 
+</mapper>

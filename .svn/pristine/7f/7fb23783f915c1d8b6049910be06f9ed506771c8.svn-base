@@ -1,0 +1,44 @@
+package com.dx.dxmanage.service.impl;
+
+import java.util.HashMap;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.dx.dxmanage.dao.UserMapper;
+import com.dx.dxmanage.po.User;
+import com.dx.dxmanage.service.IUserService;
+@Service
+public class UserServiceImpl implements IUserService {
+@Resource
+private UserMapper userMapper;
+	@Override
+	public List<User> selectAllUser() {
+		// TODO Auto-generated method stub
+		return userMapper.selectAllUser();
+	}
+	@Override
+	public User getUserByDeptid(String documentstatus) {
+		// TODO Auto-generated method stub
+		return userMapper.getUserByUsername(documentstatus);
+	}
+	@Override
+	public User login(String username, String password) {
+		// TODO Auto-generated method stub
+		Map<String,Object> map = new HashMap<String, Object>();
+		map.put("username", username);
+		map.put("password", password);
+		User user = userMapper.login(map);
+		return user;
+	}
+	@Override
+	public int updateByPrimaryKeySelective(User user) {
+		// TODO Auto-generated method stub
+		return userMapper.updateByPrimaryKeySelective(user);
+	}
+
+}

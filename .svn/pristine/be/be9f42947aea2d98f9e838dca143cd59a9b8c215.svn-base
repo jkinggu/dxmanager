@@ -1,0 +1,65 @@
+#定义根的LOG输出级别 
+log4j.rootLogger = INFO,Console,File ,e
+
+
+### 输出信息到控制抬 ###
+log4j.appender.Console=org.apache.log4j.ConsoleAppender  
+log4j.appender.Console.Target=System.out  
+#意思是在根的输出级别和下面配置的级别取一个高的级别输出，比如这时候输出ERROR及以上级别
+log4j.appender.Console.Threshold = ERROR 
+log4j.appender.Console.layout = org.apache.log4j.PatternLayout  
+log4j.appender.Console.layout.ConversionPattern=[%c] - %m%n    
+  
+  
+
+  
+### 文件大小到达指定尺寸的时候产生一个新的文件
+#log4j.appender.File = org.apache.log4j.RollingFileAppender  
+### 每天产生一个日志文件
+#log4j.appender.File = org.apache.log4j.DailyRollingFileAppender
+### 定义文件最大大小  
+#log4j.appender.File.MaxFileSize = 10MB 
+
+### 输出INFO 级别以上的日志到=logs/dxmanage/info.log 
+log4j.additivity.File=false
+log4j.appender.File.File =logs/dxmanage/info.log 
+log4j.appender.File = org.apache.log4j.RollingFileAppender  
+log4j.appender.File.MaxFileSize = 10MB 
+log4j.appender.File.Append = true
+log4j.appender.File.Threshold = INFO 
+log4j.appender.File.layout = org.apache.log4j.PatternLayout
+log4j.appender.File.layout.ConversionPattern =%d{[yyyy/MM/dd HH:mm:ss]} [%5p] [%c:%L] - %m%n
+
+
+### 输出INFO 级别以上的日志到=logs/dxmanage/error.log
+log4j.additivity.e=false
+log4j.appender.e.File =logs/dxmanage/error.log 
+log4j.appender.e = org.apache.log4j.RollingFileAppender  
+log4j.appender.e.MaxFileSize = 10MB 
+log4j.appender.e.Append = true
+log4j.appender.e.Threshold = ERROR 
+log4j.appender.e.layout = org.apache.log4j.PatternLayout
+log4j.appender.e.layout.ConversionPattern =%d{[yyyy/MM/dd HH:mm:ss]} [%5p] [%c:%L] - %m%n
+#### 日志过滤限定,在上面取的高级别的基础上继续做限定，这里只取了一个Error级别
+log4j.appender.e.filter.F1=org.apache.log4j.varia.LevelRangeFilter
+log4j.appender.e.filter.F1.LevelMin=ERROR
+log4j.appender.e.filter.F1.LevelMax=ERROR
+
+
+
+
+###  自定义包配置  ###
+log4j.logger.com.dx.dxmanage.handler.CustomerHandler = info , customerHander 
+log4j.additivity.customerHander=false
+log4j.appender.customerHander = org.apache.log4j.RollingFileAppender
+log4j.appender.customerHander.MaxFileSize = 10MB
+log4j.appender.customerHander.File =logs/dxmanage/customerLog.log
+log4j.appender.customerHander.MaxFileSize = 10MB 
+log4j.appender.customerHander.Append = true
+log4j.appender.customerHander.Threshold = INFO
+log4j.appender.customerHander.layout = org.apache.log4j.PatternLayout
+log4j.appender.customerHander.layout.ConversionPattern = %d{[yyyy/MM/dd HH:mm:ss]} [%5p] [%c:%L] - %m%n
+#### 日志过滤限定,在上面取的高级别的基础上继续做限定，这里只取了一个Error级别
+##log4j.appender.customerHander.filter.F1=org.apache.log4j.varia.LevelRangeFilter
+##log4j.appender.customerLog.filter.F1.LevelMin=ERROR
+##log4j.appender.customerLog.filter.F1.LevelMax=ERROR

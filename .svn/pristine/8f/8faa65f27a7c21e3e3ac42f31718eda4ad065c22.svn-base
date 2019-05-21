@@ -1,0 +1,29 @@
+package com.dx.dxmanage.dao;
+
+import java.util.List;
+import java.util.Set;
+
+import com.dx.dxmanage.po.Role;
+
+public interface RoleMapper {
+	int deleteByPrimaryKey(Long id);
+
+	int insert(Role record);
+
+	int insertSelective(Role record);
+
+	Role selectByPrimaryKey(Long id);
+
+	int updateByPrimaryKeySelective(Role record);
+
+	int updateByPrimaryKey(Role record);
+
+	// 根据用户id查询用户角色类型
+	Set<String> selectRoleByUserId(Long id);
+
+	// 根据用户id查询用户角色信息
+	List<Role> selectRoleByUid(Long userid);
+
+	// 查询系统用户所有角色
+	List<Role> selectAllRole();
+}

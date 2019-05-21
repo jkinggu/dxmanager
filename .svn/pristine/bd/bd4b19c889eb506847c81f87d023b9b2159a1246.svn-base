@@ -1,0 +1,279 @@
+package com.dx.dxmanage.handler;
+
+import java.util.Date;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dx.dxmanage.po.Credentials;
+import com.dx.dxmanage.po.Customer;
+import com.dx.dxmanage.po.SP;
+import com.dx.dxmanage.po.Sales;
+import com.dx.dxmanage.service.ICredentialsService;
+import com.dx.dxmanage.service.ICustomerService;
+import com.dx.dxmanage.service.ISPService;
+import com.dx.dxmanage.service.ISalesService;
+import com.dx.dxmanage.service.ITicketService;
+import com.dx.dxmanage.util.DateUtil;
+import com.dx.dxmanage.util.FileLoadClient;
+import com.dx.dxmanage.util.UUIDUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
+@Controller
+@RequestMapping("sales")
+public class SalesHandler {
+	@Resource
+	private ISalesService salesService;
+	@Resource
+	private ITicketService ticketService;
+	@Resource
+	private ICustomerService customerService;
+	@Resource
+	private ISPService spService;
+	@Resource
+	private ICredentialsService credentialsService;
+
+	// 查询所有客户购买商品情况
+	@RequestMapping("selectAllSales.dx")
+	@ResponseBody
+	public Map<String, Object> selectAllSales(Integer page, Integer limit, String customerid, Boolean notGetMoney,
+			Boolean haveTicket, String membership, String codeOrName) {
+		Map<String, Object> resultMap = new HashMap<>();
+		Map<String, Object> paramMap = new HashMap<>();
+		PageHelper.startPage(page, limit);
+		PageInfo<Sales> pageInfo = null;
+		try {
+			paramMap.put("customerid", customerid);
+			paramMap.put("notGetMoney", notGetMoney);
+			paramMap.put("haveTicket", haveTicket);
+			paramMap.put("membership", membership);
+			paramMap.put("codeOrName", codeOrName);
+			pageInfo = new PageInfo<Sales>(salesService.selectAllSales(paramMap));
+			resultMap.put("count", pageInfo.getTotal());
+			resultMap.put("data", pageInfo.getList());
+			resultMap.put("code", 0);
+			resultMap.put("msg", "汪登峰");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+
+		return resultMap;
+	}
+
+	/**
+	 * 根据客户id查询客户的销售记录
+	 */
+	@RequestMapping("selectSalesByCid.dx")
+	@ResponseBody
+	public Map<String, Object> selectSalesByCid(Integer page, Integer limit, String customerid) {
+		Map<String, Object> resultMap = new HashMap<>();
+		Map<String, Object> paramMap = new HashMap<>();
+		PageHelper.startPage(page, limit);
+		PageInfo<Sales> pageInfo = null;
+		try {
+			paramMap.put("customerid", customerid);
+			List<Sales> saleses = salesService.selectAllSales(paramMap);
+			for (Sales s : saleses) {
+				// 查询此销售记录是否已经对账
+				List<SP> sps = spService.selectSpsBySid(s.getSalesid());
+				if (!sps.isEmpty()) {
+					s.setNote("未对账");// 用销售记录的note字段记录此销售是否对账
+				}
+			}
+			pageInfo = new PageInfo<Sales>(saleses);
+			resultMap.put("count", pageInfo.getTotal());
+			resultMap.put("data", pageInfo.getList());
+			resultMap.put("code", 0);
+			resultMap.put("msg", "汪登峰");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+
+		return resultMap;
+	}
+
+	/**
+	 * 展示销售信息编辑页面
+	 */
+	@RequestMapping(value = "editSalesPage.dx", method = RequestMethod.GET)
+	public ModelAndView editSalesPage(Integer salesid) {
+		ModelAndView mav = new ModelAndView();
+		try {
+			Sales sales = salesService.selectByPrimaryKey(salesid);
+			mav.addObject("sales", sales);
+			mav.setViewName("/sales/editSalesPage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return mav;
+	}
+
+	/**
+	 * 展示新增销售信息页面
+	 */
+	@RequestMapping("addSalesPage.dx")
+	public ModelAndView addSalesPage(Integer customerid) {
+		ModelAndView mav = new ModelAndView();
+		try {
+			Customer customer = customerService.selectByCustomerid(customerid);
+			mav.addObject("customer", customer);
+			mav.setViewName("/sales/addSalesPage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return mav;
+	}
+
+	/**
+	 * 新增销售信息
+	 */
+	@RequestMapping("addSales.dx")
+	@ResponseBody
+	public Map<String, Object> addSales(Sales sales) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			salesService.addSales(sales);
+			resultMap.put("code", 200);
+			resultMap.put("msg", "新增成功");
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "新增失败");
+			e.getStackTrace();
+		}
+		return resultMap;
+	}
+
+	/**
+	 * 更新销售信息
+	 */
+	@RequestMapping("updateSales.dx")
+	@ResponseBody
+	public Map<String, Object> updateSales(Sales sales) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			salesService.updateSales(sales);
+			resultMap.put("code", 200);
+			resultMap.put("msg", "更新成功");
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "跟新失败");
+			e.getStackTrace();
+		}
+		return resultMap;
+	}
+
+	// 查询所有客户购买商品情况
+	@RequestMapping("selectNotTicketSales.dx")
+	@ResponseBody
+	public Map<String, Object> selectNotTicketSales(Integer page, Integer limit) {
+		Map<String, Object> map = new HashMap<>();
+		PageHelper.startPage(page, limit);
+		PageInfo<Sales> pageInfo = null;
+		try {
+			List<Sales> salesList = salesService.selectNotTicketSales();
+			pageInfo = new PageInfo<Sales>(salesList);
+			map.put("count", pageInfo.getTotal());
+			map.put("data", pageInfo.getList());
+			map.put("code", 0);
+			map.put("msg", "汪登峰");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return map;
+	}
+
+	/**
+	 * 删除销售信息
+	 * 
+	 * @param salesIds
+	 * @return
+	 */
+	@RequestMapping("deleteSales.dx")
+	@ResponseBody
+	public Map<String, Object> deleteSales(@RequestParam(value = "salesIds[]") Integer[] salesIds) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			for (int sid : salesIds) {
+				salesService.deleteByPrimaryKey(sid);
+			}
+			resultMap.put("code", 200);
+			resultMap.put("msg", "成功删除 " + salesIds.length + " 条记录");
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "删除失败");
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 上传支付凭证
+	 * 
+	 * @param file
+	 * @param cid
+	 * @param eid
+	 * @param examdate
+	 * @return
+	 */
+	@RequestMapping(value = "uploadCredentials.dx", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> uploadResult(@RequestParam("file") MultipartFile file, Integer salesid) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			// 获取文件名加后缀
+			String fileName = file.getOriginalFilename();
+			// 文件后缀
+			String fileF = fileName.substring(fileName.lastIndexOf("."), fileName.length());
+			// 获取新文件名（唯一，没有后缀）
+			String fileAdd = DateUtil.getDate(new Date(), "yyyyMMdd") + UUIDUtil.getUUIDCode();
+			// 新文件名
+			fileName = fileAdd + fileF;
+			String url = System.getProperty("catalina.home") + "/webapps/credentialsPho";
+			// return String “300”代表源文件为空；“200”代表上传成功;“500”代表上传失败
+			String code = FileLoadClient.uploadPic(file, url, fileName);
+			if ("200".equals(code)) {
+				//凭证上传成功，将对应销售记录credentials字段设置为“有”
+				Sales sales = new Sales();
+				sales.setSalesid(salesid);
+				sales.setPaycredentials("有");
+				salesService.updateSales(sales);
+				//将上传地址添加到credentials表中
+				Credentials credentials = new Credentials();
+				credentials.setSalesid(salesid);
+				credentials.setUrl(fileName);
+				credentialsService.insertSelective(credentials);
+				resultMap.put("code", 200);
+				resultMap.put("msg", "上传成功");
+			} else if ("400".equals(code)) {
+				resultMap.put("code", 400);
+				resultMap.put("msg", "上传失败");
+			}
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "上传失败");
+			e.printStackTrace();
+		}
+
+		return resultMap;
+
+	}
+
+}

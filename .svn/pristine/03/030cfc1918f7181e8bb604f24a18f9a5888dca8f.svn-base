@@ -1,0 +1,65 @@
+function aadUserForm() {
+	layer
+			.open({
+				type : 0,
+				title : '添加用户',
+				shade : 0.2, // 遮罩透明度
+				anim : 0, // 0-6的动画形式，-1不开启
+				content : "<lable>用户名：</lable><input type='text' name='username'  value=''style='width:120px;height:30px;display:inline-block' class='admin-header-lock-input layui-input'>",
+				yes : function() {
+					// layer.msg($("input[name = 'username']").val());
+					$.ajax({
+						type : "post",
+						url : "user/addUser.dx",
+						dataType : "json",
+						async : false,
+						data : {
+							"username" : $("input[name='username']").val()
+						},
+						success : function(result) {
+							if (result == 1) {
+								layer.msg('添加成功，请进行授权设置');
+								layui.table.reload('userTableId');
+							} else {
+								layer.msg('添加失败', {
+									icon : 2
+								});
+							}
+						},
+						error : function() {
+							layer.msg('网络异常，请稍后重试', {
+								icon : 5
+							});
+						}
+					});
+				}
+			})
+
+}
+
+function updateUserStatus(data) {
+	s = data.status;
+	layer.confirm('确认' + (s == 1 ? '禁用' : '启用') + '?', function(index) {
+		$.ajax({
+			type : "post",
+			url : "user/updateUserStatus.dx",
+			dataType : "json",
+			async : false,
+			data : {
+				"userid" : data.id,
+				"status" : s == 1 ? '0' : '1'
+			},
+			success : function(result) {
+				layer.msg(result.msg);
+				layui.table.reload('userTableId');
+			},
+			error : function() {
+				layer.msg('网络异常，请稍后重试', {
+					icon : 5
+				});
+			}
+		});
+		layer.close(index);
+	})
+
+}

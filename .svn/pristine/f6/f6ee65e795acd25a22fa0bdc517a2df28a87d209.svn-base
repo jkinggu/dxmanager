@@ -1,0 +1,425 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%--shiro 标签 --%>
+<%@taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>单位管理</title>
+<link rel="stylesheet" href="plugins/layui/css/layui.css">
+<style>
+body {
+	margin: 10px;
+}
+
+.demo-carousel {
+	height: 200px;
+	line-height: 200px;
+	text-align: center;
+}
+</style>
+<script type="text/javascript"
+	src="${pageContext.request.contextPath}/js/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+	<blockquote class="layui-elem-quote news_search layui-form ">
+		<div class="layui-input-inline" style='width: 120px'>
+			<select name="membership" id='membership' lay-search
+				lay-filter="membershipSeclect">
+				<option value="全部">全部县区</option>
+
+			</select>
+		</div>
+
+		<div class="layui-inline">
+			<div class="layui-input-inline">
+				<input placeholder="单位代码 / 名称" class="layui-input" type="text"
+					id="codeOrName">
+			</div>
+			<button class="layui-btn customer_search"
+				data-type="reloadCustomerTable" id="customer_search">
+				<i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+			</button>
+		</div>
+		<div class="layui-inline">
+			<a class="layui-btn layui-btn-normal" id="aadSales"
+				data-type="addSalesInfo">新增销售</a>
+		</div>
+
+		<div class="layui-inline">
+			<a class="layui-btn recommend" style="background-color: #5FB878"
+				data-type="addCustomerInfo" id="aadCustomer">新增单位</a>
+		</div>
+		<!-- 不能要轻易删，此处有隐藏授权功能 -->
+		<!-- <div class="layui-inline layui-form-pane">
+			<label class="layui-form-label shouquan" data-type="shouquan"
+				style='background-color: #FFB800; padding: 0 12px; line-height: 38px; color: #fff; width: 90px;'>批量授权</label>
+			<div class="layui-input-inline" style='width: 80px'>
+				<select id="timelimit">
+					<option value="2017">2017</option>
+					<option value="2018">2018</option>
+					<option value="2019">2019</option>
+					<option value="2020">2020</option>
+					<option value="2021">2021</option>
+					<option value="2022">2022</option>
+				</select>
+			</div>
+		</div> -->
+	</blockquote>
+	<table class="layui-hide" id="customerTable" lay-filter="customer"></table>
+	<form class="layui-form" id='addCustomerForm'
+		style='display: none; margin: 10px;'>
+		<div class="layui-form-item">
+			<label class="layui-form-label">单位编码</label>
+			<div class="layui-input-inline">
+				<input name="customercode" class="layui-input" id="customercode"
+					lay-verType='tips' lay-verify='customercode'>
+			</div>
+
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">单位名称</label>
+			<div class="layui-input-block">
+				<input name="customername" class="layui-input" id='customername'
+					onkeyup="inputCustomername1()" lay-verType='tips'
+					lay-verify='customername'>
+			</div>
+		</div>
+
+		<div class="layui-form-item">
+			<label class="layui-form-label">开票名称</label>
+			<div class="layui-input-block">
+				<input class="layui-input" id='customername1' name='customername1'>
+			</div>
+		</div>
+		<div class="layui-form-item ">
+			<label class="layui-form-label">所属县区</label>
+			<div class="layui-input-inline">
+				<select name="membership" id='membershipForm'
+					lay-filter='membershipForm'>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">联系人</label>
+			<div class="layui-input-inline">
+				<input type="text" name="agent" autocomplete="off"
+					class="layui-input" id='agent' >
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">联系方式</label>
+			<div class="layui-input-inline">
+				<input type="text" name="mobile" class="layui-input"
+					lay-verType='tips' id='mobile' maxlength='11'>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">邮箱</label>
+			<div class="layui-input-inline">
+				<input type="email" name="email" autocomplete="off"
+					class="layui-input" lay-verType='tips' id='email'>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">QQ</label>
+			<div class="layui-input-inline">
+				<input type="text" name="qq" class="layui-input" lay-verType='tips'
+					id='qq'>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">信用代码</label>
+			<div class="layui-input-inline">
+				<input type="text" name="creditcode" class="layui-input"
+					lay-verType='tips' id='creditcode' maxlength='18'>
+			</div>
+		</div>
+
+
+		<div class="layui-form-item">
+
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="submitCustomerForm">提交</button>
+			</div>
+		</div>
+	</form>
+	<script type="text/html" id="customerBar">
+  <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="shouquan" title="授权"><i class="layui-icon">&#xe631;</i></a>
+  <a class="layui-btn layui-btn-xs" lay-event="edit" title="编辑"><i class="layui-icon">&#xe642;</i> </a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" title="删除"><i class="layui-icon">&#xe640;</i></a>
+</script>
+	<script src="./plugins/layui/layui.js"></script>
+	<script src="<%=basePath%>/js/wdf/sales.js"></script>
+	<script src="<%=basePath%>/js/wdf/customer.js"></script>
+	<script>
+	var customercode;
+	var membership = null;
+		layui
+				.use(
+						[ 'laydate', 'layer', 'table', 'upload', 'element','form' ],
+						function() {
+							var laydate = layui.laydate // 日期
+							, layer = layui.layer // 弹层
+							, upload = layui.upload // 上传
+							, element = layui.element // 元素操作
+							, $ = layui.jquery
+							, form = layui.form;
+							table = layui.table; // 表格
+							// 执行一个 table 实例
+					table.render({
+								elem : '#customerTable',
+								url : 'customer/selectAllCustomer.dx',// 数据接口
+								title : '单位管理',
+								page : true,// 开启分页
+								id : 'customerTable',
+								limits : [ 10, 20, 50, 100, 500 ],
+								limit : 10, //每页默认显示的数量
+								loading : true,
+								cols : [ [ // 表头
+								{
+									type : 'checkbox',
+									fixed : 'left'
+								}, {
+									field : 'customercode',
+									title : '单位编码',
+									sort : true,
+									width:100,
+								}, {
+									field : 'customername',
+									title : '单位名称',
+									align : 'center',
+									width : 300,
+								}, {
+									field : 'membership',
+									title : '县区',
+									width : 100,
+									align : 'center',
+								}, {
+									title : '联系人',
+									templet : '<div>{{d.agent }} {{d.mobile }}</div>',
+									align : 'center',
+								}, {
+									field : 'email',
+									title : '邮箱',
+									align : 'center',
+								}, {
+									field : 'qq',
+									title : 'QQ',
+									align : 'center',
+								}, {
+									field : 'creditcode',
+									title : '信用代码',
+									align : 'center',
+								}, {
+									field : 'timelimit',
+									title : '工资期限',
+									align : 'center',
+									width:90
+								}, {
+									field : 'nbtimelimit',
+									title : '年报期限',
+									align : 'center',
+									width:90
+								}, {
+									title : '操作',
+									fixed : 'right',
+									align : 'center',
+									toolbar : '#customerBar',
+									width:145
+								} ] ],
+								where : {
+									codeOrName : $('#codeOrName').val()
+											.replace(/[ ]/g, ""),
+									membership : membership=='全部'?null:membership
+								}
+							});
+							//监听行双击事件
+							table.on('rowDouble(customer)', function(obj){
+								customer = obj.data;
+							    selectSalesInfoByCid(customer);
+							});
+							// 监听行工具事件
+							table.on('tool(customer)', function(obj) { 
+								var data = obj.data // 获得当前行数据
+								, layEvent = obj.event; // 获得 lay-event 对应的值
+								if (layEvent === 'del') {
+									<shiro:hasAnyRoles name='0'>
+									layer.confirm('确定删除?', function(index) {
+										// 向服务端发送删除指令
+										deleteCustomerByCid(data.customerid);
+										obj.del(); // 删除对应行（tr）的DOM结构
+										layer.close(index);
+									});
+									return
+									</shiro:hasAnyRoles>
+									layer.msg("对不起，您无此权限")
+								} else if (layEvent === 'edit') {
+									//请求编辑客户的页面，并自动填写客户信息
+									editCustomer(data.customerid);
+								}else if (layEvent === 'shouquan') {
+									//查询本单位及子单位，并弹窗
+									selectCusChildren(data)
+								}
+							});
+
+							 active = {
+								reloadCustomerTable : function() {
+									//执行重载
+									table.reload('customerTable', {
+										where : {
+											codeOrName : $('#codeOrName').val().replace(/[ ]/g, ""),
+											membership :  membership=='全部'?null:membership
+										}
+									});
+								},
+								addSalesInfo : function() {
+									var checkStatus = table
+											.checkStatus('customerTable'), data = checkStatus.data;
+									if (data.length == 0) {
+										layer.msg('请选择一个单位')
+										return
+									} else if (data.length > 1) {
+										layer.msg('只能选择一个单位')
+										return
+									} else {
+										addSalesPage(data[0].customerid);
+										return  
+									}
+
+								},
+								addCustomerInfo: function() {
+									var checkStatus = table
+												.checkStatus('customerTable'), data = checkStatus.data;
+										if (data.length == 0) {//没有选中任何一条单位记录
+											layer.alert('建立一级单位，请先选择所属县区',function(index){
+											layer.close(index);
+											customercode = selectSubCMaxCode($('#membershipForm').val());
+											$('#customercode').val(customercode);
+											$('#membershipForm').attr("disabled",false);
+											form.render('select');
+											clearFieldInfo();
+											addCustomerPage();
+											});
+											return
+										} else if (data.length > 1) {//选中多条单位记录
+											layer.alert('建立子单位时只能选择一个单位')
+											return
+										} else {//选中一条单位记录时
+											customercode =  selectSubCMaxCode(data[0].membership,data[0].customercode);
+											$('#membershipForm').val(data[0].membership);
+											$('#membershipForm').attr('disabled','disabled');
+											$('#customercode').val(customercode);
+											clearFieldInfo();
+											form.render('select');
+											addCustomerPage();
+											return  
+										   }
+			
+									},
+									shouquan:function(){
+										var checkStatus = table.checkStatus('customerTable'),
+										 data = checkStatus.data;
+										if (data.length == 0) {
+											layer.msg('请选择单位')
+											return
+										}
+										var cusIds = [];
+										for(i=0;i<data.length;i++){
+											cusIds.push(data[i].customerid)
+										}
+										var timelimit = $('#timelimit').val();
+										tsContent = "确认将已选单位授权到 <span style='color:red'>"+timelimit+"</span> 年";
+										layer.confirm(tsContent, {btn: ['确定', '取消'], title: "提示"}, function () {
+											$.ajax({
+												type : "POST",
+												url : "customer/updateCTimelimit.dx",
+												dataType : "json",
+												data:{
+													"cusIds":cusIds,
+													"timelimit":timelimit
+												},
+												async : false,
+												success : function(res) {
+													layer.msg(res.msg);
+													table.reload("customerTable",{
+														where : {
+															codeOrName : $('#codeOrName').val().replace(/[ ]/g, ""),
+															membership : $('#membership').val()=="全部"?null:$('#membership').val()
+														}
+													});
+												},
+												error : function() {
+													layer.msg("网络异常，请稍后重试");
+												}
+											});
+										})
+									}
+								
+
+							      };  
+							 //监听选择框选择事件
+							 form.on('select(membershipSeclect)',function(data){
+								 membership = data.value;
+							 })
+							 form.on('select(membershipForm)',function(data){
+								 customercode = selectSubCMaxCode(data.value);
+								 $('#customercode').val(customercode);
+							 })
+
+							$('.customer_search,#aadSales,#aadCustomer,.shouquan').on('click', function() {
+								var type = $(this).data('type');
+								active[type] ? active[type].call(this) : '';
+							});
+							 //自定义表单验证
+							 form.verify({
+								 customercode:function(value, item){ //value：表单的值、item：表单的DOM对象
+									 if(value=='' || value==null){
+										 return '单位编码不能为空';
+									 }else if(!/^[0-9]*$/.test(value)){
+										 return '单位编码格式有误';
+									 }
+								 },
+								 customername:function(value,item){
+									 if(value=='' || value==null){
+										 return '单位名称不能为空';
+									 }
+								 }
+							 })
+							//监听提交
+								form.on('submit(submitCustomerForm)', function(data) {
+									submitCustomerForm(data.field)
+									return false;
+								});
+						});
+	</script>
+	<script type="text/javascript">
+	//此功能已被隐藏，暂时未用
+	$(document).ready(function(){
+		$('#timelimit').val('2018');
+	});
+	$('#membership').append(gainMembership());
+	//自动填充增加单位信息里的单位县区
+	$('#membershipForm').html(gainMembership());
+	
+	function clearFieldInfo(){
+		$('#customername').val('');
+		$('#customername1').val('');
+		$('#agent').val('');
+		$('#mobile').val('');
+		$('#email').val('');
+		$('#qq').val('');
+		$('#creditcode').val('');
+	}
+	</script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<description>apache shiro配置</description>
+	<bean id="shiroFilter"
+		class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />
+		<!-- 需要被认证时的登录界面 -->
+		<property name="loginUrl" value="/login.jsp" />
+		<!-- 认证成功后的跳转界面 -->
+		<!--  <property name="successUrl" value="/sysjsp/index.jsp" /> -->
+		<property name="unauthorizedUrl" value="/401.jsp" />
+		<!-- 经过认证或不被拦截的界面 -->
+		<property name="filterChainDefinitions">
+			<value>
+				<!-- 静态资源允许访问 -->
+				/build/**=anon
+				/css/** = anon
+				/js/** = anon
+				/plugins/** = anon
+				/template/** = anon
+				<!-- 页面资源访问权限 -->
+				/user/**=anon
+				/customer/selectCus.dx=anon
+				/customer/addCustomer.dx=anon
+				/customer/allCustomer.dx=anon
+				/jsp/** = authc
+				/logout.dx = logout
+				<!-- 如果某个资源允许访问， 直接匹配成anon 即可 -->
+				<!-- /rest/user/* = anon -->
+				<!-- 如果某个资源需要认证，且要有相应的角色，可以直接如下设置，可以设置多个角色用逗号隔开, 有可以设置权限控制 -->
+				<!-- 也是使用注解来实现， 具体见 UserController 类 -->
+				<!-- /rest/user/admin = authc ,roles[admin] ,perms[user:create] -->
+				<!-- /rest/user/admin = authc ,perms[user:create] -->
+				<!-- 其他资源需要认证 ，需要认证的资源 匹配成 authc -->
+				/** = authc
+			</value>
+		</property>
+	</bean>
+
+	<!-- 安全管理器 -->
+	<bean id="securityManager"
+		class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="userRealm" />
+	</bean>
+
+	<!-- 自定义 realm -->
+	<bean id="userRealm" class="com.dx.dxmanage.shiro.UserRealm" />
+
+
+	<!-- Shiro生命周期处理器 -->
+	<bean id="lifecycleBeanPostProcessor"
+		class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+	<!-- 开启Shiro注解 -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor" />
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+</beans>
+

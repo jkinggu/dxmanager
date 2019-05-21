@@ -1,0 +1,70 @@
+//新增发票页面
+function aadTicketForm() {
+	
+	layer.open({
+		type : 2,
+		title : '新增发票信息',
+		content : 'jsp/ticket/addTicketForm.jsp',
+		area : [ '300px', '400px' ]
+	});
+}
+//给特定元素设置当前日期
+function getNowDate(ele){
+	layui.define([ 'laydate' ], function() {
+		var laydate = layui.laydate;
+		laydate.render({
+			elem : ele, // 指定元素
+			farmat : 'yyyy-MM-dd',
+			value : new Date(),
+			max : 'new Date()'
+		});
+	})
+}
+
+//新增发票表单提交
+function submitTicketForm(data){
+	alert(data.field.tickettime);
+	tickettime = data.field.tickettime;
+	beginnum = data.field.beginnum;
+	ticketamount = data.field.ticketamount;
+	
+	endnum = parseInt(beginnum) + parseInt(ticketamount) - 1;
+	beginnum = pad(beginnum, 8);
+	endnum = pad(endnum, 8);
+	$.ajax({
+		type : "post",
+		dataType : 'json',
+		url : 'ticket/addTicket.dx',
+		data : {
+			"tickettime" : tickettime,
+			"beginnum" : beginnum,
+			"ticketamount" : ticketamount,
+			"endnum" : endnum,
+			"usenum" : beginnum
+		},
+		success : function(msg) {
+			if (msg == 1) {
+				/* if (window.parent.dataTable) {
+					window.parent.dataTable
+							.reload();
+				} */
+				layer.msg('成功');
+			} else {
+				layer.msg('失败');
+			}
+		},
+		error : function() {
+			layer.msg('提交失败,请重新提交');
+		}
+	})
+}
+
+// 数字字符串不够位补0
+function pad(num, n) {
+	var len = num.toString().length;
+	while (len < n) {
+		num = "0" + num;
+		len++;
+	}
+	return num;
+}

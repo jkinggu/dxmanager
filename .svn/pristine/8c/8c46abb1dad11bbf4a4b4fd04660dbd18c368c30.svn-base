@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.CustomerMapper">
+	<resultMap id="BaseResultMap"
+		type="com.dx.dxmanage.po.Customer">
+		<id column="customerid" jdbcType="INTEGER" property="customerid" />
+		<result column="customercode" jdbcType="VARCHAR"
+			property="customercode" />
+		<result column="customername" jdbcType="VARCHAR"
+			property="customername" />
+		<result column="customername1" jdbcType="VARCHAR"
+			property="customername1" />
+		<result column="membership" jdbcType="VARCHAR"
+			property="membership" />
+		<result column="agent" jdbcType="VARCHAR" property="agent" />
+		<result column="mobile" jdbcType="VARCHAR" property="mobile" />
+		<result column="email" jdbcType="VARCHAR" property="email" />
+		<result column="qq" jdbcType="VARCHAR" property="qq" />
+		<result column="creditcode" jdbcType="VARCHAR"
+			property="creditcode" />
+		<result column="timelimit" jdbcType="VARCHAR"
+			property="timelimit" />
+	</resultMap>
+	<!--此mapper开启二级缓存 -->
+	<!-- <cache /> -->
+	<!-- 如果我们的某个SQL语句不需要进行二级缓存，但这个SQL所在的Mapper已经配置了二级缓存，那么我们只需要在这个statement上设置useCache属性为false，就可以关闭这个SQL语句的二级缓存，代码如下： -->
+	<!-- <select id="selectOrderUserType" resultType="bean_order_user_type" 
+		useCache="false"> -->
+	<sql id="Base_Column_List">
+		customerid, customercode, customername,customername1,
+		membership, agent,
+		mobile, email, qq,
+		creditcode,timelimit
+	</sql>
+	<!-- 根据客户id查询客户信息 -->
+	<select id="selectByCustomerid"
+		parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from customerinfo
+		where customerid = #{customerid,jdbcType=INTEGER}
+	</select>
+	<!-- 根据客户所属县区、代码查询单个客户 -->
+	<select id="selectCusByMemberAndCode" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from customerinfo
+		where membership = #{membership} and customercode = #{customercode}
+	</select>
+	<!-- 根据单位id获取子单位的最大单位编码 -->
+	<select id="selectSubCMaxCode" resultType="String">
+
+		select
+		max(customercode)
+		from customerinfo
+		where
+		membership = #{membership,jdbcType=VARCHAR}
+		and
+		SUBSTRING(customercode,1,length(#{customercode,jdbcType=VARCHAR})) = #{customercode,jdbcType=VARCHAR}
+		and
+		length(customercode) = (length(#{customercode,jdbcType=VARCHAR})+2)
+	</select>
+
+	<!-- 查询所有客户 -->
+	<select id="selectAllCustomer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from customerinfo
+		<where>
+			1=1
+			<if test="membership!=''">
+				and membership = #{membership,jdbcType=VARCHAR}
+			</if>
+			<if test="codeOrName!=null">
+				and (customercode like #{codeOrName}"%"
+				or
+				customername
+				like "%"#{codeOrName}"%")
+			</if>
+		</where>
+		order by customercode asc
+	</select>
+	<!-- 根据一个客户的membership和代码查询本单位及所有子单位 -->
+	<select id="selectCusChildren" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from customerinfo
+		<where>
+			1=1
+			<if test="membership!='' and membership!=null">
+				and membership = #{membership,jdbcType=VARCHAR}
+			</if>
+			<if test="customercode!='' and customercode!=null">
+				and customercode like #{codeOrName}"%"
+			</if>
+		</where>
+		order by customercode asc
+	</select>
+
+	<!-- 查询所有县区（membership） -->
+	<select id="selectMembership" resultMap="BaseResultMap">
+		select membership from
+		customerinfo group by membership
+	</select>
+	<!-- 查询二级单位 -->
+	<select id="selectDanwei2" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM customerinfo where membership = #{membership,jdbcType=VARCHAR}
+		and length(customercode) = 3 ORDER BY customercode ASC
+	</select>
+
+	<!-- 查询三级单位 -->
+	<select id="selectDanwei3" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM customerinfo WHERE membership = #{membership,jdbcType=VARCHAR}
+		AND SUBSTRING(customercode,1,3) = #{customercode,jdbcType=VARCHAR} AND
+		LENGTH(customercode) = 5 ORDER BY customercode ASC
+	</select>
+
+	<!-- 查询四级单位 -->
+	<select id="selectDanwei4" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM customerinfo WHERE membership = #{membership,jdbcType=VARCHAR}
+		AND SUBSTRING(customercode,1,5) = #{customercode,jdbcType=VARCHAR} AND
+		length(customercode) = 7 ORDER BY customercode ASC
+	</select>
+	<!-- 查询部分客户列表 -->
+	<select id="selectPartCustomerList" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM customerinfo
+		<where>
+			membership = #{membership,jdbcType=VARCHAR}
+			<choose>
+				<when test="length(customercode) = 3">
+					length(customercode) = 3 ORDER BY customercode ASC
+				</when>
+				<when test="length(customercode) = 5">
+					SUBSTRING(customercode,1,3) =
+					#{customercode,jdbcType=VARCHAR} AND
+					LENGTH(customercode) = 5 ORDER
+					BY customercode ASC
+				</when>
+				<when test="length(customercode) = 7">
+					SUBSTRING(customercode,1,5) =
+					#{customercode,jdbcType=VARCHAR} AND
+					length(customercode) = 7 ORDER
+					BY customercode ASC
+				</when>
+			</choose>
+		</where>
+
+	</select>
+
+	<delete id="deleteByPrimaryKey"
+		parameterType="java.lang.Integer">
+		delete from
+		customerinfo
+		where customerid =
+		#{customerid,jdbcType=INTEGER}
+	</delete>
+
+	<insert id="insertSelective"
+		parameterType="com.dx.dxmanage.po.Customer">
+		insert into customerinfo
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="customerid != null">
+				customerid,
+			</if>
+			<if test="customercode != null">
+				customercode,
+			</if>
+			<if test="customername != null">
+				customername,
+			</if>
+			<if test="customername1 != null">
+				customername1,
+			</if>
+			<if test="membership != null">
+				membership,
+			</if>
+			<if test="agent != null">
+				agent,
+			</if>
+			<if test="mobile != null">
+				mobile,
+			</if>
+			<if test="email != null">
+				email,
+			</if>
+			<if test="qq != null">
+				qq,
+			</if>
+			<if test="creditcode != null">
+				creditcode,
+			</if>
+			<if test="timelimit != null">
+				timelimit,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="customerid != null">
+				#{customerid,jdbcType=INTEGER},
+			</if>
+			<if test="customercode != null">
+				#{customercode,jdbcType=VARCHAR},
+			</if>
+			<if test="customername != null">
+				#{customername,jdbcType=VARCHAR},
+			</if>
+			<if test="customername1 != null">
+				#{customername1,jdbcType=VARCHAR},
+			</if>
+			<if test="membership != null">
+				#{membership,jdbcType=VARCHAR},
+			</if>
+			<if test="agent != null">
+				#{agent,jdbcType=VARCHAR},
+			</if>
+			<if test="mobile != null">
+				#{mobile,jdbcType=VARCHAR},
+			</if>
+			<if test="email != null">
+				#{email,jdbcType=VARCHAR},
+			</if>
+			<if test="qq != null">
+				#{qq,jdbcType=VARCHAR},
+			</if>
+			<if test="creditcode != null">
+				#{creditcode,jdbcType=VARCHAR},
+			</if>
+			<if test="timelimit != null">
+				#{timelimit,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+
+	<update id="updateCustomer"
+		parameterType="com.dx.dxmanage.po.Customer">
+		update customerinfo
+		<set>
+			<if test="customercode != null">
+				customercode = #{customercode,jdbcType=VARCHAR},
+			</if>
+			<if test="customername != null">
+				customername = #{customername,jdbcType=VARCHAR},
+			</if>
+			<if test="customername1 != null">
+				customername1 = #{customername1,jdbcType=VARCHAR},
+			</if>
+			<if test="membership != null">
+				membership = #{membership,jdbcType=VARCHAR},
+			</if>
+			<if test="agent != null">
+				agent = #{agent,jdbcType=VARCHAR},
+			</if>
+			<if test="mobile != null">
+				mobile = #{mobile,jdbcType=VARCHAR},
+			</if>
+			<if test="email != null">
+				email = #{email,jdbcType=VARCHAR},
+			</if>
+			<if test="qq != null">
+				qq = #{qq,jdbcType=VARCHAR},
+			</if>
+			<if test="creditcode != null">
+				creditcode = #{creditcode,jdbcType=VARCHAR},
+			</if>
+			<if test="timelimit != null">
+				timelimit = #{timelimit,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where customerid = #{customerid,jdbcType=INTEGER}
+	</update>
+
+</mapper>

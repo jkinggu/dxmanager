@@ -1,0 +1,441 @@
+package com.dx.dxmanage.handler;
+
+import static org.hamcrest.CoreMatchers.nullValue;
+
+import java.util.ArrayList;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dx.dxmanage.po.Customer;
+import com.dx.dxmanage.service.ICustomerService;
+import com.dx.dxmanage.util.DateUtil;
+import com.dx.dxmanage.util.Encode;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
+@Controller
+@RequestMapping("customer")
+public class CustomerHandler {
+	@Resource
+	private ICustomerService customerService;
+	protected final static Logger logger = Logger.getLogger(CustomerHandler.class);
+
+	/**
+	 * 查询所有单位
+	 * 
+	 * @param page
+	 * @param limit
+	 * @param membership
+	 * @param codeOrName
+	 * @return
+	 */
+	@RequestMapping("selectAllCustomer.dx")
+	@ResponseBody
+	public Map<String, Object> selectAllCustomer(int page, int limit, String membership, String codeOrName) {
+		PageHelper.startPage(page, limit);
+		PageInfo<Customer> pageInfo = null;
+		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			resultMap.put("membership", membership);
+			resultMap.put("codeOrName", codeOrName);
+			pageInfo = new PageInfo<Customer>(customerService.selectAllCustomer(resultMap));
+			map.put("code", 0);
+			map.put("msg", "汪登峰");
+			map.put("count", pageInfo.getTotal());
+			map.put("data", pageInfo.getList());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+
+	/**
+	 * 
+	 * 返回授权页面（页面显示当前单位及其子单位）
+	 * 
+	 */
+	@RequestMapping("getShouquanPage.dx")
+	public ModelAndView getShouquanPage(Customer customer) {
+		ModelAndView mav = new ModelAndView();
+		try {
+			String year = DateUtil.getDate(new Date(), "yyyy");// 获取今年份
+			int yearNow = Integer.parseInt(year);
+			int yearNowP1 = yearNow - 1;
+			int yearNowP2 = yearNow - 2;
+			int yearNowN1 = yearNow + 1;
+			int yearNowN2 = yearNow + 2;
+			int yearNowN3 = yearNow + 3;
+			int yearNowN4 = yearNow + 4;
+			mav.addObject("yearNow", yearNow);
+			mav.addObject("yearNowP1", yearNowP1);
+			mav.addObject("yearNowP2", yearNowP2);
+			mav.addObject("yearNowN1", yearNowN1);
+			mav.addObject("yearNowN2", yearNowN2);
+			mav.addObject("yearNowN3", yearNowN3);
+			mav.addObject("yearNowN4", yearNowN4);
+			mav.addObject("customer", customer);
+			mav.setViewName("customer/shouquanPage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mav;
+	}
+
+	/**
+	 * 远程接口：根据membership和code返回对应工资软件期限timelimit和年报软件期限nbtimelimit
+	 * 
+	 * @param membership
+	 * @param code
+	 * @param name
+	 * @param selectType
+	 *            要查询的类型，包括两种值0和1（0代表软件期限，1代表年报期限）
+	 * @return
+	 */
+	@RequestMapping(value = "selectCus.dx")
+	@ResponseBody
+	public Map<String, Object> selectCus(String membership, String code, String name, Integer selectType) {
+		Map<String, Object> resultMap = new HashMap<>();
+		String msString = null;
+		String nameString = null;
+		String systemName = null;
+		// System.out.println(membership);
+		// System.out.println(name);
+		try {
+			msString = Encode.BASE64ToUtf8(membership.replaceAll(" ", "+"));
+			// System.out.println(msString);
+			nameString = Encode.BASE64ToUtf8(name.replaceAll(" ", "+"));
+			// System.out.println(nameString);
+			List<Customer> customers = customerService.selectCusByMemberAndCode(msString, code);
+			if (customers.isEmpty()) {// 当系统中不存在此单位
+				resultMap.put("code", "400");
+			} else if (customers.size() == 1) {
+				systemName = customers.get(0).getCustomername();
+				if (nameString.equals(systemName)) {
+					resultMap.put("code", "200");
+					if (selectType == 0) {
+						resultMap.put("msg", customers.get(0).getTimelimit());
+					} else if (selectType == 1) {
+						resultMap.put("msg", customers.get(0).getNbtimelimit());
+					} else {
+						resultMap.put("msg", "selectType Error");
+					}
+				} else {// 当系统中存在此 单位，但系统中单位名称≠提供的name
+					resultMap.put("code", "300");
+				}
+			} else {
+				resultMap.put("code", "100");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("code", "500");
+		} finally {
+			String codeStr = (String) resultMap.get("code");
+			// logger.error("传参数据：membership="+membership+"&code="+code+"&name="+name+"&selectType="+selectType);
+			logger.error("传参数据：membership=" + msString + "&code=" + code + "&name=" + nameString + "&selectType="
+					+ selectType);
+			if (codeStr.equals("100")) {
+				logger.error("返回结果：系统中存在多条记录（县区与单位编码联合主键重复）");
+			} else if (codeStr.equals("200")) {
+				logger.error("返回结果：" + resultMap.get("msg"));
+			} else if (codeStr.equals("400")) {
+				logger.error("返回结果：系统中不存在此单位");
+			} else if (codeStr.equals("300")) {
+				logger.error("返回结果：名称不匹配,系统中单位名称为[" + systemName + "]");
+			} else {
+				logger.error("返回结果：系统执行出现异常");
+			}
+		}
+		return resultMap;
+	}
+
+	/**
+	 * 根据主键客户id查询客户信息
+	 * 
+	 * @param customerid
+	 * @return
+	 */
+	@RequestMapping("selectCustomerByCid.dx")
+	@ResponseBody
+	public Customer selectCustomer(Integer customerid) {
+		Customer customer = null;
+		try {
+			customer = customerService.selectByCustomerid(customerid);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return customer;
+	}
+
+	/**
+	 * 根据县区和编码获取子单位最大编码
+	 * 
+	 * @param membership
+	 * @param customercode
+	 * @return
+	 */
+	@RequestMapping("selectSubCMaxCode.dx")
+	@ResponseBody
+	public String selectSubCMaxCode(String membership, String customercode) {
+		String code = null;
+		try {
+			code = customerService.selectSubCMaxCode(membership, customercode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return code;
+
+	}
+
+	// 分级查询所有单位，建立树形菜单导航
+	@RequestMapping("selectPartCustomerList.dx")
+	public Map<String, Object> selectPartCustomerList() {
+		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> resultMap = new HashMap<>();
+		List<Customer> list = new ArrayList<>();
+		try {
+			map.put("membership", "membership");
+			map.put("customercode", "customercode");
+			list = customerService.selectPartCustomerList(map);
+			resultMap.put("data", list);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 获取所有县区
+	 * 
+	 * @return
+	 */
+	@RequestMapping("selectAllMembership.dx")
+	@ResponseBody
+	public List<String> selectAllMembership() {
+		List<String> list = new ArrayList<>();
+		try {
+			list = customerService.selectMembership();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return list;
+
+	}
+
+	/**
+	 * 新增单位信息
+	 * 
+	 * @param customer
+	 *            客户对象（其中membership，customercode，customername三个字段必须传递）
+	 * @param newCode
+	 *            新单位编码
+	 * @return
+	 */
+	@RequestMapping("addCustomerinfo.dx")
+	@ResponseBody
+	public Map<String, Object> addCustomerinfo(Customer customer) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			List<Customer> customer2 = customerService.selectCusByMemberAndCode(customer.getMembership(),
+					customer.getCustomercode());
+			if (customer2.isEmpty()) {// 当系统中不存在此单位时
+				customerService.insertSelective(customer);// 新增客户
+				resultMap.put("code", 200);
+				resultMap.put("msg", "已新增");
+			} else {// 当此单位存在时
+				resultMap.put("code", 300);
+				resultMap.put("msg", "单位重复");
+			}
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "新增失败");
+			e.printStackTrace();
+		}
+		return resultMap;
+	}
+
+	/**
+	 * 新增单位信息（接口）
+	 * 
+	 * @param customer
+	 *            客户对象（其中membership，customercode，customername三个字段必须传递）
+	 * @param newCode
+	 *            新单位编码
+	 * @return
+	 */
+	@RequestMapping("addCustomer.dx")
+	@ResponseBody
+	public int addCustomer(Customer customer, String newcode) {
+		int a = 0;
+		try {
+			String membership = Encode.BASE64ToUtf8(customer.getMembership());// .replaceAll(" ", "+")
+			// System.out.println("membership----" + membership);
+			String customername = Encode.BASE64ToUtf8(customer.getCustomername().replaceAll(" ", "+"));
+			String customername1 = customername;// 设置初始单位开票名称
+			String customercode = customer.getCustomercode();
+
+			customer.setMembership(membership);
+			customer.setCustomername(customername);
+			customer.setCustomername1(customername1);
+			List<Customer> customer2 = customerService.selectCusByMemberAndCode(membership, customercode);
+			if (customer2.isEmpty()) {// 当系统中不存在此单位时
+				if ("".equals(newcode) || newcode == null) {
+					a = customerService.insertSelective(customer);// 新增客户
+				} else {
+					customer.setCustomercode(newcode);
+					a = customerService.insertSelective(customer);// 新增客户
+				}
+			} else if (customer2.size() == 1) {// 当此单位存在时
+				customer2.get(0).setMembership(membership);
+				customer2.get(0).setCustomername(customername1);
+				if ("".equals(newcode) || newcode == null) {
+					a = customerService.updateCustomer(customer2.get(0));
+				} else {
+					customer2.get(0).setCustomercode(newcode);
+					a = customerService.updateCustomer(customer2.get(0));
+				}
+			} else {
+				logger.error("县区——————" + membership + "单位编码——————————" + customercode + "在数据库中存在多条记录");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+	}
+
+	/**
+	 * 删除单位信息
+	 * 
+	 * @param customerid
+	 * @return
+	 */
+	@RequestMapping("deleteByPrimaryKey.dx")
+	@ResponseBody
+	public Integer deleteByPrimaryKey(Integer customerid) {
+		Integer a = 0;
+		try {
+			a = customerService.deleteByPrimaryKey(customerid);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+
+	}
+
+	/**
+	 * 返回客户编辑页面，并返回客户信息
+	 * 
+	 * @param customerid
+	 * @return
+	 */
+	@RequestMapping(value = "editCustomer.dx", method = RequestMethod.GET)
+	public ModelAndView editCustomer(Integer customerid) {
+		ModelAndView mav = new ModelAndView();
+
+		try {
+			Customer customer = customerService.selectByCustomerid(customerid);
+			mav.addObject("customer", customer);
+			mav.setViewName("customer/editCustomerForm");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mav;
+
+	}
+
+	/**
+	 * 更新客户信息
+	 * 
+	 * @param customer
+	 * @return
+	 */
+	@RequestMapping("updateCustomer.dx")
+	@ResponseBody
+	public Map<String, Object> updateCustomer(Customer customer) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			String membership = customer.getMembership();
+			String customercode = customer.getCustomercode();
+			List<Customer> customer2 = customerService.selectCusByMemberAndCode(membership, customercode);
+			if (customer2.isEmpty()) {// 当系统中该县区不存在此编码
+				customerService.updateCustomer(customer);
+				resultMap.put("code", 200);
+				resultMap.put("msg", "已更新");
+			} else {// 当该县区此编码存在，且只有一个时
+					// 判断接收的单位id是否等于数据库中存在的单位的id，若不相等，为了保持数据库中所属县区（membership）和单位编码（customercode）联合唯一，则不能更新
+				int a = 0;
+				for (Customer c : customer2) {
+					if (customer.getCustomerid().equals(c.getCustomerid())) {
+						a = 1;
+						customerService.updateCustomer(customer);
+						resultMap.put("code", 200);
+						resultMap.put("msg", "已更新");
+						break;
+					}
+				}
+				if (a == 0) {
+					resultMap.put("code", 300);
+					resultMap.put("msg", "该县区已存在此编码");
+				}
+			}
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "更新失败");
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 批量修改客户授权年限
+	 * 
+	 * @param cusIds
+	 * @param limit
+	 * @param shouquanType
+	 *            值为0或1（0代表更新工资服务授权，1代表年报服务授权）
+	 * @return
+	 */
+	@RequestMapping("updateCTimelimit.dx")
+	@ResponseBody
+	public Map<String, Object> updateCTimelimit(@RequestParam(value = "cusIds[]") Integer[] cusIds, String limit,
+			Integer shouquanType) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			for (int cid : cusIds) {
+				Customer customer = new Customer();
+				customer.setCustomerid(cid);
+				if (shouquanType == 0) {
+					customer.setTimelimit(limit);
+				} else if (shouquanType == 1) {
+					customer.setNbtimelimit(limit);
+				}
+				customerService.updateCustomer(customer);
+			}
+			resultMap.put("code", 200);
+			resultMap.put("msg", "成功授权" + cusIds.length + "个单位");
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("code", 400);
+			resultMap.put("msg", "授权失败");
+		}
+		return resultMap;
+
+	}
+
+}

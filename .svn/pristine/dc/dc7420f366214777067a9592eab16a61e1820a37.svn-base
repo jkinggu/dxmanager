@@ -1,0 +1,171 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>银行流水管理</title>
+<link rel="stylesheet" href="<%=basePath%>plugins/layui/css/layui.css">
+<script src="<%=basePath%>js/jquery-1.11.0.min.js"></script>
+<style>
+body {
+	margin: 10px;
+}
+
+.demo-carousel {
+	height: 200px;
+	line-height: 200px;
+	text-align: center;
+}
+</style>
+</head>
+<body>
+	 <blockquote class="layui-elem-quote news_search">
+		<div class="layui-inline demoTable">
+			<div class="layui-input-inline">
+				<input  placeholder="请输入交易日期" class="layui-input "
+					id="transdateInput" lay-verify="date"  >
+			</div>
+			<button class="layui-btn" data-type="reload" id="payment_search">搜索</button>
+		</div>
+		<!-- <div class="layui-inline">
+			<a class="layui-btn layui-btn-normal newsAdd_btn" id="uploadExcel">导入文件</a>
+		</div> -->
+
+	</blockquote> 
+	<table class="layui-hide" id="paymentTable" lay-filter="payment"></table>
+	<script type="text/html" id='paymentToolBar'>
+	<a class="layui-btn layui-btn-xs newsAdd_btn" id="uploadExcel" title='导入文件'>导入</a>
+	</script>
+	<script type="text/html" id="paymentBar">
+  <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+  <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+	</script>
+
+	<script src="<%=basePath%>/plugins/layui/layui.js"></script>
+
+	<script>
+		var dataTable;
+		layui
+				.use(
+						[ 'form', 'laydate', 'layer', 'table', 'upload',
+								'element' ],
+						function() {
+							var laydate = layui.laydate // 日期
+							, layer = layui.layer // 弹层
+							, table = layui.table // 表格
+							, upload = layui.upload // 上传
+							, element = layui.element // 元素操作
+							, $ = layui.$
+							// 执行一个 table 实例
+							dataTable = table.render({
+								elem : '#paymentTable',
+								url : 'payment/selectAllPayment.dx',// 数据接口
+								title : '销售信息详情表',
+								//cellMinWidth : 70, //全局定义常规单元格的最小宽度
+								page : true,// 开启分页
+								toolbar : '#paymentToolBar', // 开启工具栏，此处显示默认图标，可以自定义模板
+								id : 'idPayment',
+								limits : [ 5, 10, 20, 30, 40, 50 ],
+								limit : 10, //每页默认显示的数量
+								loading : true,
+								cols : [ [ // 表头
+									{align : 'center',type : 'checkbox',fixed : 'left'}
+									,{align : 'center',field : 'transdate',	title : '交易日期',sort : true,width : 105}
+									,{align : 'center',field : 'paynum',title : '交易时间戳'}
+									,{align : 'center',field : 'received',title : '收入金额'}
+									,{align : 'center',field : 'paid',title : '支出金额'}
+									,{align : 'center',	field : 'balance',title : '本次余额'}
+									,{align : 'center',field : 'bankname',title : '交易行名'}
+									,{align : 'center',field : 'banknum',title : '开户行账号'}
+									,{align : 'center',field : 'name',title : '开户人户名'}
+									,{align : 'center',field : 'postscript',title : '交易附言'} 
+									] ]
+							});
+							//实例化日期
+							laydate.render({
+								elem : '#transdateInput', // 指定元素
+								farmat : 'yyyy-MM-dd',
+								//value : new Date(),
+								max : 'new Date()'
+							});
+							//指定允许上传的文件类型	
+							upload.render({
+								elem : '#uploadExcel',
+								url : 'excelUpload.dx',
+								accept : 'file', //允许上传的文件类型   
+								acceptMime : 'file/xls',//规定打开文件选择框时，筛选出的文件类型
+								exts : 'xls',//允许上传的文件后缀
+								multiple : true,
+								before:function(obj){
+									layer.load();
+								},
+								done : function(res, index, upload) {
+									//上传完毕回调
+									layer.closeAll('loading');
+									if (res == 0) {
+										layer.msg("数据均已存在,无需导入!")
+									} else {
+										layer.msg("成功导入" + res + "条数据!")
+									}
+								},
+								error : function() {
+									//请求异常回调
+									layer.msg("网络异常，请刷新重试")
+								}
+							});
+
+							active = {
+								reload : function() {
+									//执行重载
+									table.reload('idPayment', {
+										where:{
+											"transdate":$('#transdateInput').val()
+										}
+									});
+								}
+							};
+							$('#payment_search').on('click', function() {
+								var type = $(this).data('type');
+								active[type] ? active[type].call(this) : '';
+							});
+							// 监听头工具栏事件
+							table
+									.on(
+											'toolbar(payment)',
+											function(obj) {
+												var checkStatus = table
+														.checkStatus(obj.config.id), data = checkStatus.data; // 获取选中的数据
+												switch (obj.event) {
+												case 'add':
+
+													break;
+												case 'update':
+													if (data.length === 0) {
+														layer.msg('请选择一行');
+													} else if (data.length > 1) {
+														layer.msg('只能同时编辑一个');
+													} else {
+
+													}
+													break;
+												case 'delete':
+
+													break;
+												}
+												;
+											});
+
+						});
+	</script>
+
+</body>
+</html>

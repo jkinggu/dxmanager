@@ -1,0 +1,277 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<title>layui</title>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="<%=basePath%>/plugins/layui/css/layui.css">
+<style>
+body {
+	margin: 10px;
+}
+
+.demo-carousel {
+	height: 200px;
+	line-height: 200px;
+	text-align: center;
+}
+</style>
+<script type="text/javascript"
+	src="<%=basePath%>/js/jquery-1.11.0.min.js"></script>
+</head>
+
+<body onload='aa()'>
+
+	
+<form class="layui-form" action="">
+		<input type='hidden' id='salesid' name='salesid'> <input
+			type='hidden' id='customerid' name='customerid'>
+		<div class="layui-form-item">
+			<label class="layui-form-label">登记日期</label>
+			<div class="layui-input-inline">
+				<input name="salesdate" 
+					autocomplete="off" class="layui-input" id="salesdate"
+					lay-verType='tips'>
+			</div>
+
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">发票号码</label>
+			<div class="layui-input-inline">
+				<input name="ticketnum" placeholder="请输入发票号码" autocomplete="off"
+					class="layui-input" id='ticketnum'>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">商品类别</label>
+			<div class="layui-input-block">
+				<select name="goodsid" id='goodsid'>
+					<option value=""></option>
+					<option value="10">工资管理软件</option>
+					<option value="11">工资年报统计</option>
+					<option value="12">工考软件</option>
+					<option value="13">工资管理软件服务费</option>
+					<option value="14">耐克运动鞋</option>
+					<option value="15">耐克运动鞋</option>
+					<option value="16">耐克运动鞋</option>
+					<option value="17">耐克运动鞋</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">付款单位</label>
+			<div class="layui-input-block">
+				<input type="text" disabled autocomplete="off" class="layui-input"
+					id='customername'>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">开票名称</label>
+			<div class="layui-input-block">
+				<input placeholder="请输入开票名称" autocomplete="off" class="layui-input"
+					id='receipt' name='receipt'>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">总金额</label>
+			<div class="layui-input-inline">
+				<input name="amount" class="layui-input" lay-verType='tips'
+					id='amount'>
+			</div>
+		</div>
+
+		<div class="layui-form-item">
+			<label class="layui-form-label">支付方式</label>
+			<div class="layui-input-inline">
+				<select name="payment" lay-verify="required" id='payment'>
+					<option value="转账">转账</option>
+					<option value="现金">现金</option>
+					<option value="刷卡">刷卡</option>
+				</select>
+			</div>
+		</div>
+		<div class='' style="width: 320px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">联系人</label>
+				<div class="layui-input-inline">
+					<input type="text" name="linkman" autocomplete="off"
+						class="layui-input" id='linkman'>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">联系方式</label>
+				<div class="layui-input-inline">
+					<input type="text" name="tel" class="layui-input"
+						lay-verType='tips' id='tel'>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">邮箱</label>
+				<div class="layui-input-inline">
+					<input type="email" name="email" autocomplete="off"
+						class="layui-input" lay-verType='tips' id='email'>
+				</div>
+			</div>
+
+		</div>
+		 <div class="layui-form-item layui-upload">
+			<input type="hidden" name="paycredentials" id='paycredentials'>
+			<button type="button" class="layui-btn" id="uploadCredentials">上传图片</button>
+			<div class="layui-upload-list">
+				<img class="layui-upload-img" style="width: 100px; height: 100px"
+					src='' id="imgView">
+				<p id="imgViewText"></p>
+			</div>
+		</div> 
+		<div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">备注</label>
+			<div class="layui-input-block">
+				<textarea name="note" class="layui-textarea" id='note'></textarea>
+			</div>
+		</div>
+
+
+		<div class="layui-form-item">
+
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="demo1">提交</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+	</form>
+<script src="<%=basePath%>/plugins/layui/layui.js"></script>
+	<script>
+		layui
+				.use(
+						[ 'form', 'laydate', 'upload' ],
+						function() {
+							var form = layui.form;
+							var laydate = layui.laydate;
+							var upload = layui.upload;
+
+							//监听提交
+							/* form.on('submit(demo1)', function(data) {
+								layer.alert(JSON.stringify(data.field), {
+									title : '最终的提交信息'
+								})
+								return false;
+							}); */
+							form.on('submit(demo1)', function(data) {
+								layer.msg("11111111");
+								return false;
+							});
+							//执行上传支付凭证实例
+							var uploadCredentials = upload
+									.render({
+										elem : '#uploadCredentials', //绑定元素
+										url : 'qiniu/upload.dx', //上传接口
+										auto : true, //选择文件后自动上传
+										//accept: 'images', //允许上传的文件类型,file为所有文件
+										//size: 50 //最大允许上传的文件大小
+										multiple : true,//是否支持多文件上传
+										before : function(obj) {
+											//预读本地文件示例，不支持ie8
+											obj.preview(function(index, file,
+													result) {
+												$('#imgView').attr('src',
+														result); //图片链接（base64）
+											});
+											layer.load();
+										},
+										done : function(res, index, upload) {/*执行上传请求后的回调。返回三个参数，分别为：res（服务端响应信息）、index（当前文件的索引）、upload（重新上传的方法，一般在文件上传失败后使用）  */
+											//上传完毕回调
+											layer.closeAll('loading');
+											$('#paycredentials').val(res.key);
+										},
+										error : function() {
+											//请求异常回调
+											layer.closeAll('loading');
+											layer.msg('网络异常，请稍后重试！');
+											//演示失败状态，并实现重传
+											var imgViewText = $('#imgViewText');
+											imgViewText
+													.html('<span style="color: #FF5722;">上传失败</span> '
+															+ '<a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+											imgViewText.find('.demo-reload')
+													.on('click', function() {
+														uploadInst.upload();
+													});
+										}
+									});
+
+						});
+		
+		function aa() {
+			if (window.parent.newSalesid) {
+				$("#salesid").val(window.parent.newSalesid);
+			}
+			if (window.parent.newSalesdate) {
+				$("#salesdate").val(window.parent.newSalesdate);
+			} else {
+				layui.laydate.render({
+					elem : '#salesdate', // 指定元素
+					farmat : 'yyyy-MM-dd',
+					value : new Date(),
+					max : 'new Date()'
+				});
+			}
+			if (window.parent.newTicketnum) {
+				$("#ticketnum").val(window.parent.newTicketnum);
+			}
+			if (window.parent.newGoodsid) {
+				$("#goodsid").find(
+						"option[value='" + window.parent.newGoodsid + "']")
+						.attr("selected", true);
+				goodsText = $("#goodsid [selected='selected']").text();
+				$("#goodsid").next().children().find("input[type='text']").val(
+						goodsText);
+			}
+			if (window.parent.newCustomername) {
+				$("#customername").val(window.parent.newCustomername);
+			}
+			if (window.parent.newCustomerid) {
+				$("#customerid").val(window.parent.newCustomerid);
+			}
+			if (window.parent.newReceipt) {
+				$("#receipt").val(window.parent.newReceipt);
+			}
+			if (window.parent.newaAmount) {
+				$("#amount").val(window.parent.newaAmount);
+			}
+			if (window.parent.newaAgent) {
+				$("#linkman").val(window.parent.newaAgent);
+			}
+			if (window.parent.newMobile) {
+				$("#tel").val(window.parent.newMobile);
+			}
+			if (window.parent.newEmail) {
+				$("#email").val(window.parent.newEmail);
+			}
+			if (window.parent.newPayment) {
+				$("#payment").val(window.parent.newPayment);
+			}
+			if (window.parent.newPaycredentials) {
+				$("#paycredentials").val(window.parent.newPaycredentials);
+				$("#imgView").attr('src', window.parent.newPaycredentials);
+
+			}
+			if (window.parent.newNote) {
+				$("#note").val(window.parent.newNote);
+			}
+
+		};
+	</script>
+
+</body>
+
+</html>

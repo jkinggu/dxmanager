@@ -1,0 +1,168 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+	pageEncoding="utf-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>登录</title>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<link rel="stylesheet" type="text/css"
+	href="template/loginpage/css/bootstrap.min.css">
+<!-- 框架 -->
+<link href="template/loginpage/css/font-awesome.min.css"
+	rel="stylesheet" />
+<link href="template/loginpage/css/Main.min.css" rel="stylesheet" />
+
+
+</head>
+<body class="loginPage">
+
+	<div class="loginbox">
+		<header>
+		<h2>登录</h2>
+		</header>
+		<form method="post" class="loginForm">
+			<div class="form-group">
+				<div class="input-group">
+					<div class="input-group-addon">
+						<i class="fa fa-user fa-fw"></i>
+					</div>
+					<input class="form-control" type="text" placeholder="用户名"
+						id="username" name="username" minlength="2" autocomplete="off">
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="input-group">
+					<div class="input-group-addon">
+						<i class="fa fa-desktop fa-fw"></i>
+					</div>
+					<input class="form-control" type="password" placeholder="密码"
+						minlength="5" id="password" name="password">
+				</div>
+			</div>
+			<div class="checkbox">
+				<label> <input type="checkbox" id="rememberMe"> 记住我
+				</label>
+			</div>
+			<button type="submit" class="btn btn-primary">登录系统</button>
+		</form>
+	</div>
+
+	<!-- jquery.js -->
+	<script type="text/javascript"
+		src="template/loginpage//js/jquery-2.1.1.min.js"></script>
+	<!-- bootstrap.js -->
+	<script type="text/javascript"
+		src="template/loginpage/js/bootstrap.min.js"></script>
+
+	<!-- myself.js -->
+	<script src="template/loginpage/js/main.js"></script>
+	<script src="layui/layer/layer.js"></script>
+
+	<script>
+		$.fn.serializeObject = function() {
+			var o = {};
+			var a = this.serializeArray();
+			$.each(a, function() {
+				if (o[this.name]) {
+					if (!o[this.name].push) {
+						o[this.name] = [ o[this.name] ];
+					}
+					o[this.name].push(this.value || '');
+				} else {
+					o[this.name] = this.value || '';
+				}
+			});
+			return o;
+		};
+		var loginbox = {
+			initialize : function() {
+				var winheight = $(window).height(), lbheight = $('.loginbox')
+						.height();
+				var paddingTop = (winheight - lbheight) / 2 - 50;
+				$('.loginPage').css('padding-top', paddingTop + 'px');
+			}
+
+		}
+		$(function() {
+
+			loginbox.initialize();
+
+			$(window).resize(function() {
+				loginbox.initialize();
+			});
+
+			$('button')
+					.click(
+							function(e) {
+								e.preventDefault();
+								jsonObj = $(".loginForm").serializeObject(); // json对象
+								if (jsonObj.username == ""
+										|| jsonObj.username == null) {
+									layer.msg('请输入用户名');
+									return false;
+								}
+								if (jsonObj.password == ""
+										|| jsonObj.password == null) {
+									layer.msg('请输入密码');
+									return false;
+								}
+								var load = layer.load();
+								$
+										.ajax({
+											type : "post",
+											url : "user/userLogin.dx",
+											data : {
+												"username" : $("#username").val(),
+												"password" : $("#password")
+														.val(),
+												"rememberMe" : $("#rememberMe")
+														.prop('checked')
+											},
+											dataType : "json",
+											sync : true,
+											beforeSend : function() {
+												layer.msg('开始登录，请注意后台控制台');
+											},
+											success : function(result) {
+												layer.close(load);
+												if (result
+														&& result.status != 200) {
+													layer.msg(result.message,
+															function() {
+															});
+													$('#password').val('');
+													return;
+												} else {
+													layer.msg(result.message);
+													setTimeout(
+															function() {
+																//登录返回
+																window.location.href = result.back_url
+																		|| "${basePath}/";
+															}, 1000)
+												}
+											},
+											error : function(e) {
+												layer.msg('登录失败！');
+											}
+										})
+
+							});
+
+		})
+	</script>
+
+
+
+
+</body>
+</html>

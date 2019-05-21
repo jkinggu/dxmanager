@@ -1,0 +1,140 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%--shiro 标签 --%>
+<%@taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>角色管理</title>
+<link rel="stylesheet" href="<%=basePath%>/plugins/layui/css/layui.css">
+<style>
+body {
+	margin: 10px;
+}
+</style>
+
+</head>
+<body>
+	<div class='layui-main' style='width: 1000px;'>
+		<blockquote class="layui-elem-quote">
+			<div class="layui-inline">
+				<a class="layui-btn layui-btn-normal "
+					href='javascript:addRolePage();'>新增角色</a>
+			</div>
+			<div class="layui-inline">
+				<a class="layui-btn layui-btn-danger deleteRoles"
+					data-type="deleteRoles">批量删除</a>
+			</div>
+		</blockquote>
+		<table class="layui-hide" id="roleTable" lay-filter="role"></table>
+	</div>
+
+	<script type="text/html" id="roleBar">
+  {{#  if(d.name!='高级管理员'){ }}
+<a class="layui-btn layui-btn-xs" lay-event="edit">编辑 </a>
+  <a  class="layui-btn layui-btn-xs layui-btn-warm" lay-event="fenpeiquanxian">分配权限</a>
+  {{#  } }}
+	</script>
+
+	<script type="text/javascript"
+		src="<%=basePath%>/js/jquery-1.11.0.min.js"></script>
+	<script src="<%=basePath%>/plugins/layui/layui.js"></script>
+	<script src="<%=basePath%>/js/wdf/sysuser.js"></script>
+
+	<script>
+		layui.use([ 'layer', 'table', 'element' ], function() {
+			var layer = layui.layer // 弹层
+			, element = layui.element; // 元素操作
+			table = layui.table;
+			table.render({
+				elem : '#roleTable',
+				url : 'role/selectAllRole.dx',// 数据接口
+				title : '权限列表',
+				page : false,// 开启分页
+				id : 'roleTable',
+				limits : [ 5, 10, 20, 50 ],
+				limit : 10, //每页默认显示的数量
+				loading : true,
+				cols : [ [ // 表头
+				{
+					align : 'center',
+					type : 'checkbox',
+					fixed : 'left'
+				}, {
+					align : 'center',
+					field : 'name',
+					title : '角色名称',
+				}, {
+					title : '操作',
+					fixed : 'right',
+					align : 'center',
+					toolbar : '#roleBar',
+					width : 150
+				} ] ]
+
+			});
+			// 监听行工具事件
+			table.on('tool(role)', function(obj) {
+				var data = obj.data // 获得当前行数据
+				, layEvent = obj.event; // 获得 lay-event 对应的值
+				if (layEvent === 'edit') {
+					role = data;
+					layer.open({
+						type : 2,
+						title : '编辑角色',
+						content : 'jsp/sysuser/editRole.jsp',
+						area : [ '300px', '200px' ],
+					});
+				} else if (layEvent === 'fenpeiquanxian') {
+					layer.open({
+						type : 2,
+						title : '[' + data.name + ']权限分配',
+						content : 'jsp/sysuser/role_permission.jsp?roleid='
+								+ data.id,
+						area : [ '90%', '90%' ],
+					});
+				}
+			});
+
+			active = {
+				//批量删除角色操作
+				deleteRoles : function() {
+					var checkStatus = table.checkStatus('roleTable');
+					checkedData = checkStatus.data;
+					var roleIds = [];
+					for ( var i in checkedData) {
+						roleIds.push(checkedData[i].id);
+					}
+					if (roleIds.length === 0) {
+						return layer.msg('请选择要删除的角色');
+					}
+					deleteRoles(roleIds);
+				}
+			};
+			$('.deleteRoles').on('click', function() {
+				var type = $(this).data('type');
+				active[type] ? active[type].call(this) : '';
+			});
+		});
+
+		function addRolePage() {
+			layer.open({
+				type : 2,
+				title : '新增角色',
+				content : 'jsp/sysuser/addRole.jsp',
+				area : [ '300px', '200px' ],
+			});
+		}
+	</script>
+
+</body>
+</html>

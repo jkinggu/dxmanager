@@ -1,0 +1,30 @@
+package com.dx.dxmanage.service;
+
+import java.util.List;
+
+import java.util.Map;
+
+import com.dx.dxmanage.po.Customer;
+
+public interface ICustomerService {
+	// 根据客户id查询客户信息
+	Customer selectByCustomerid(Integer customerid);
+
+	// 根据主键（客户id）删除客户信息
+	int deleteByPrimaryKey(Integer customerid);
+
+	// 查询所有客户
+	List<Customer> selectAllCustomer(Map<String, Object> salesMap);
+
+	// 查询所有县区
+	List<String> selectMembership();
+
+	// 添加单位信息
+	int insertSelective(Customer record);
+
+	// 更新客户信息
+	int updateCustomer(Customer record);
+
+	// 查询部分客户列表
+	List<Customer> selectPartCustomerList(Map<String, Object> customerMap);
+}

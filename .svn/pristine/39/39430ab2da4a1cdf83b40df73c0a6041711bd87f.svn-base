@@ -1,0 +1,9 @@
+package com.dx.dxmanage.service;
+
+import com.dx.dxmanage.po.SP;
+
+public interface ISPService {
+
+	// 新增销售与银行流水的对应记录
+	int insertSelective(SP record);
+}

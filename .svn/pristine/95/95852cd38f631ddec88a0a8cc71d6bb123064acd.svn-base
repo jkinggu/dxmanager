@@ -1,0 +1,184 @@
+var newSalesid;
+var newSalesdate;
+var newTicketnum;
+var newGoodsid;
+var newReceipt;
+var newCustomerid;
+var newCustomername;
+var newAgent;
+var newMobile;
+var newEmail;
+var newAmount;
+var newPayment;
+var newPaycredentials;
+var newNote;
+function aadSalesForm(title, data) {
+	if (data == null) {
+		newSalesid = null;
+		newSalesdate = null;
+		newTicketnum = null;
+		newGoodsid = null;
+		newReceipt = null;
+		newCustomerid = null;
+		newCustomername = null;
+		newAgent = null;
+		newMobile = null;
+		newEmail = null;
+		newAmount = null;
+		newPayment = null;
+		newPaycredentials = null;
+		newNote = null;
+	} else {
+		newCustomerid = data[0].customerid;
+		newEmail = data[0].email;
+	}
+	layer.open({
+		type : 2,
+		title : title,
+		content : 'jsp/sales/addSalesForm.jsp',
+		area : [ '30%', '95%' ],
+	});
+}
+
+// 从父页面取值给addsSalesForm页面直接赋值
+function aa() {
+	if (window.parent.newSalesid) {
+		$("#salesid").val(window.parent.newSalesid);
+	}
+	if (window.parent.newSalesdate) {
+		$("#salesdate").val(window.parent.newSalesdate);
+	} else {
+		layui.define([ 'laydate' ], function() {
+			var laydate = layui.laydate;
+			laydate.render({
+				elem : '#salesdate', // 指定元素
+				farmat : 'yyyy-MM-dd',
+				value : new Date(),
+				max : 'new Date()'
+			});
+		})
+	}
+	if (window.parent.newTicketnum) {
+		$("#ticketnum").val(window.parent.newTicketnum);
+	}
+	if (window.parent.newGoodsid) {
+		$("#goodsid").find("option[value='" + window.parent.newGoodsid + "']")
+				.attr("selected", true);
+		goodsText = $("#goodsid [selected='selected']").text();
+		$("#goodsid").next().children().find("input[type='text']").val(
+				goodsText);
+	}
+	if (window.parent.newCustomername) {
+		$("#customername").val(window.parent.newCustomername);
+	}
+	if (window.parent.newCustomerid) {
+		$("#customerid").val(window.parent.newCustomerid);
+	}
+	if (window.parent.newReceipt) {
+		$("#receipt").val(window.parent.newReceipt);
+	}
+	if (window.parent.newAmount) {
+		$("#amount").val(window.parent.newAmount);
+	}
+	if (window.parent.newAgent) {
+		$("#linkman").val(window.parent.newAgent);
+	}
+	if (window.parent.newMobile) {
+		$("#tel").val(window.parent.newMobile);
+	}
+	if (window.parent.newEmail) {
+		$("#email").val(window.parent.newEmail);
+	}
+	if (window.parent.newTicketnum) {
+		$("#ticketnum").val(window.parent.newTicketnum);
+	}
+	if (window.parent.newPayment) {
+		$("#payment").find("option[value='" + window.parent.newPayment + "']")
+				.attr("selected", true);
+		paymentText = $("#payment [selected='selected']").text();
+		$("#payment").next().children().find("input[type='text']").val(
+				paymentText);
+		// $("#payment").val(window.parent.newPayment);
+	}
+	if (window.parent.newPaycredentials) {
+		$("#paycredentials").val(window.parent.newPaycredentials);
+		$("#imgView").attr('src', window.parent.newPaycredentials);
+	}
+	if (window.parent.newNote) {
+		$("#note").val(window.parent.newNote);
+	}
+
+};
+// 查看支付凭证
+function checkCredentials(credentialsUrl) {
+	window.open(credentialsUrl, '支付凭证');
+}
+
+function selectSalesInfoByCid(c) {
+	var customer = c;
+	layer.open({
+		type : 2,
+		title : '[' + customer.customername + ']购买商品详情',
+		content : 'jsp/sales/salesManage2.jsp',
+		area : [ '1600px', '600px' ],
+		maxmin : true,
+		resize : true,// - 是否允许拉伸
+	});
+
+}
+
+// 自动填充开票号码
+function gainTicketnum() {
+	var ticket = null;
+	$.ajax({
+		type : "post",
+		url : "ticket/selectWillUseTicket.dx",
+		dataType : "json",
+		async : false,
+		success : function(msg) {
+			if (msg != "" && msg != null) {
+				ticket = msg;
+			} else {
+				layer.alert('发票已用尽!请谨慎开票');
+			}
+
+		},
+		error : function() {
+			layer.alert('自动获取开票号码失败,可手动填写!');
+		}
+	});
+	return ticket;
+}
+
+// 删除销售记录
+function deleteSales(data) {
+	if (data.length === 0) {
+		layer.msg('请选择一行');
+	} else {
+		layer.confirm('确定删除?', function(index) {
+			//obj.del(); // 删除对应行（tr）的DOM结构
+			//layer.close(index);
+			// 向服务端发送删除指令
+			$.ajax({
+				type : "post",
+				url : "sales/deleteSales.dx",
+				dataType : "json",
+				data:{
+					'salesid':data.salesid
+				},
+				async : false,
+				success : function(msg) {
+					if(msg==1){
+						layer.msg('删除成功',{icon:1})
+						 parent.dataTable.reload('#idwdf02');
+					}else{
+						layer.msg('删除失败',{icon:2})
+					}
+				},
+				error:function(){
+					layer.msg('网络异常，请重新操作',{icon:5})
+				}
+			});
+		});
+	}
+}

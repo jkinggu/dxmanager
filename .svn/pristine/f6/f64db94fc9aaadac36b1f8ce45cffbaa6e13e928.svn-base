@@ -1,0 +1,20 @@
+package com.dx.dxmanage.service;
+
+import java.util.List;
+import java.util.Set;
+
+import com.dx.dxmanage.po.Permission;
+
+public interface IPermissionService {
+	// 根据用户id查询权限
+	Set<String> selectPermissionByUserId(Long userId);
+
+	// 查询所有权限
+	List<Permission> selectAllPermission();
+
+	// 根据角色id查询权限
+	List<Permission> selectPermissionByRoleId(Long roleId);
+
+	// 根据codeid查询权限列表
+	List<Permission> selectPermissionsByCodeid(String codeid);
+}

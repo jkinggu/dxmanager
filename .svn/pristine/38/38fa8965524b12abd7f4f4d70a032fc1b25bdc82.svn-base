@@ -1,0 +1,162 @@
+//获得所有商品供select选择
+function gainGoods() {
+	var statem = "<option value=''> 请选择... </option>";
+	$.ajax({
+		type : "POST",
+		url : "goods/selectAllGoods.dx",
+		dataType : "json",
+		async : false,
+		success : function(msg) {
+			$.each(msg, function(i, goods) {
+				statem = statem + "<option value='" + goods.goodsid +"'>" + goods.goodsname + "</option>";
+			});
+		},
+		error : function() {
+			layer.alert("获取商品列表失败！");
+		}
+	});
+	return statem;
+};
+
+// 通过商品id查询商品价格信息
+/*var selectGoodsByGoodsid = function(goodsid) {
+	$.ajax({
+		type : "POST",
+		url : "selectGoodsByGoodsid.action",
+		data : {
+			"goodsid" : goodsid
+		},
+		dataType : "json",
+		async : false,
+		success : function(goods) {
+			price = goods.price;
+
+		},
+		error : function() {
+			layer.alert("获取商品单价失败！");
+		}
+	});
+	return price;
+}*/
+
+// 添加销售信息时改变选择商品时触发此方法
+/*$("#goodsid").change(function() {
+	var goodsidAndUnit = $(this).val();
+	var goodsid = goodsidAndUnit.split("-")[0];
+	price = selectGoodsByGoodsid(goodsid);
+	$("#price").val(price);
+	gianAmount();
+});*/
+
+/*function addSalesinfoModal_Show(ele) {
+	// 自动填充开票号码
+	gainTicketnum();
+	// 获取所有商品信息，并添加到商品选择栏
+	$("#goodsid").html(gainGoods());
+	// 在模态框1的单位框中自动获取单位名称
+	if (ele == "havaCustomerinfo") {
+
+		if ($("#no4").val() != "" && $("#no4").val() != "请选择...") {
+			Customerinfo = $("#no4").val()
+		} else if ($("#no3").val() != "" && $("#no3").val() != "请选择...") {
+			Customerinfo = $("#no3").val()
+		} else {
+			Customerinfo = $("#no2").val()
+		}
+		if (Customerinfo !== null && Customerinfo != '' && Customerinfo != "请选择...") {
+			$("#customerid").val(gainCidInCustomerinfo(Customerinfo));// 自动填充单位编号
+			$("#membership").val(gainCnameInCustomerinfo(Customerinfo));// 自动填充单位名称
+			$("#receipt").val(gainCname1InCustomerinfo(Customerinfo));// 自动填充开票名称
+
+		}
+
+	}
+}*/
+
+// 展示商品管理界面
+/*function shangpinguanli() {
+	zeroModal.loading(5);
+	$
+			.ajax({
+				type : "POST",
+				url : "selectGoodsPage.action",
+				async : false,
+				success : function(msg) {
+					$(".content-header")
+							.html(
+									"<button class='btn btn-primary btn-sm' data-toggle='modal' data-target='#myModel_addGoods' style='height: 34px; padding-right: 10px'> <i class='icon expand-icon glyphicon glyphicon-plus'></i>添加商品信息</button>");
+					$(".content").html(msg);
+					zeroModal.closeAll();
+				},
+				error : function() {
+					zeroModal.closeAll();
+					zeroModal.alert("方法执行不成功!");
+				}
+			});
+}*/
+
+// 添加商品信息
+/*function addGoodsinfo() {
+	// var goodsdata = $("#form_goodsinfo").serialize();
+	var goodsname = $("#goodsname").val();
+	var price = $("#price").val();
+	var unit = $("input[name='unit']:checked").val();
+	var description = $("#description").val();
+	if (goodsname == null || goodsname == "") {
+		zeroModal.alert("商品名称为空！");
+	} else if (price == null || price == "") {
+		zeroModal.alert("价格为空！");
+	} else {
+		$.ajax({
+			type : "POST",
+			url : "addGoods.action",
+			data : {
+				"goodsname" : goodsname,
+				"price" : price,
+				"unit" : unit,
+				"description" : description
+			},
+			async : false,
+			success : function(msg) {
+				zeroModal.success("添加成功!");
+			},
+			error : function() {
+				zeroModal.error("添加失败!");
+			}
+		});
+		$('#myModel_addGoods').modal('hide');
+	}
+
+}*/
+// 删除商品
+/*function deleteGoods(ele) {
+	var goodsids = null;
+
+	if (ele == "批量删除商品") {
+
+	} else {
+		goodsids = goodsids + "-" + ele;
+	}
+	zeroModal.confirm({
+		content : "警告：删除此商品信息的同时，会一并删除与此信息相关的销售信息！是否确认删除？",
+		okFn : function() {
+			$.ajax({
+				type : "POST",
+				url : "deleteGoods.action",
+				data : {
+					"goodsids" : goodsids
+				},
+				async : false,
+				success : function() {
+					zeroModal.alert("删除成功!");
+
+				},
+				error : function() {
+					zeroModal.error("删除失败!");
+				}
+			});
+		}
+	})
+
+}
+*/

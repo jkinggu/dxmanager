@@ -1,0 +1,259 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>layui在线调试</title>
+<link rel="stylesheet" href="plugins/layui/css/layui.css">
+<style>
+body {
+	margin: 10px;
+}
+
+.demo-carousel {
+	height: 200px;
+	line-height: 200px;
+	text-align: center;
+}
+</style>
+<script type="text/javascript"
+	src="${pageContext.request.contextPath}/js/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+	<blockquote class="layui-elem-quote news_search">
+		<div class="layui-inline">
+			<select name="membership" id='membership'>
+				<option value="全部">全部</option>
+				<option value="市直">市直</option>
+				<option value="浉河">浉河</option>
+				<option value="平桥">平桥</option>
+				<option value="羊山">羊山</option>
+				<option value="潢川">潢川</option>
+				<option value="罗山">罗山</option>
+				<option value="淮滨">淮滨</option>
+				<option value="商城">商城</option>
+				<option value="息县">息县</option>
+				<option value="光山">光山</option>
+				<option value="新县">新县</option>
+			</select>
+		</div>
+
+
+		<div class="layui-inline">
+			<div class="layui-input-inline">
+				<input placeholder="请输入单位代码或名称" class="layui-input" type="text"
+					id="codeOrName">
+			</div>
+			<button class="layui-btn customer_search"
+				data-type="reloadCustomerTable" id="customer_search">
+				<i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+			</button>
+		</div>
+
+		<div class="layui-inline">
+			<a class="layui-btn layui-btn-normal" id="aadSales"
+				data-type="addSalesInfo">新增销售</a>
+		</div>
+
+		<div class="layui-inline">
+			<a class="layui-btn recommend" style="background-color: #5FB878"
+				data-type="addCustomerInfo" id="aadCustomer">新增单位</a>
+		</div>
+		<!--<div class="layui-inline">
+			<a class="layui-btn layui-btn-danger batchDel">批量删除</a>
+		</div> -->
+		<!-- <div class="layui-inline">
+			 <div class="layui-form-mid layui-word-aux"></div> 
+		</div> -->
+
+	</blockquote>
+	<table class="layui-hide" id="customerTable" lay-filter="customer"></table>
+	<script type="text/html" id="customerBar">
+   <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+  <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+	<script src="./plugins/layui/layui.js"></script>
+	<script src="<%=basePath%>/js/wdf/sales.js"></script>
+	<script src="<%=basePath%>/js/wdf/customer.js"></script>
+	<script>
+	var dataTable;
+		layui
+				.use(
+						[ 'laydate', 'layer', 'table', 'upload', 'element', ],
+						function() {
+							table = layui.table // 表格
+							;
+							var laydate = layui.laydate // 日期
+							, layer = layui.layer // 弹层
+							, upload = layui.upload // 上传
+							, element = layui.element // 元素操作
+							// 执行一个 table 实例
+						dataTable=table.render({
+								elem : '#customerTable',
+								url : 'customer/selectAllCustomer.dx',// 数据接口
+								title : '单位管理',
+								page : true,// 开启分页
+								totalRow : false, // 开启合计行
+								id : 'customerTable',
+								limits : [ 10, 20, 50, 100, 500, 1000 ],
+								limit : 10, //每页默认显示的数量
+								loading : true,
+								cols : [ [ // 表头
+								{
+									type : 'checkbox',
+									fixed : 'left'
+								}, {
+									field : 'customercode',
+									title : '单位编码',
+									sort : true
+								}, {
+									field : 'customername',
+									title : '单位名称',
+									width : 180,
+									sort : true,
+									totalRow : true
+								}, {
+									field : 'customername1',
+									title : '开票名称',
+									edit : 'text',
+									width : 180,
+									sort : true
+								}, {
+									field : 'membership',
+									title : '县区',
+									sort : true,
+									totalRow : true
+								}, {
+									field : 'agent',
+									title : '联系人',
+								}, {
+									field : 'mobile',
+									title : '手机',
+								}, {
+									field : 'email',
+									title : '邮箱',
+								}, {
+									field : 'qq',
+									title : 'QQ',
+									sort : true,
+								}, {
+									field : 'creditcode',
+									title : '信用代码',
+									sort : true,
+								}, {
+									title : '操作',
+									fixed : 'right',
+									align : 'center',
+									toolbar : '#customerBar'
+								} ] ]
+							});
+							//监听行双击事件
+							table.on('rowDouble(customer)', function(obj){
+								customer = obj.data;
+							    selectSalesInfoByCid(customer);
+							});
+							// 监听行工具事件
+							table.on('tool(customer)', function(obj) { 
+								var data = obj.data // 获得当前行数据
+								, layEvent = obj.event; // 获得 lay-event 对应的值
+								if (layEvent === 'detail') {
+									layer.msg('查看操作');
+								} else if (layEvent === 'del') {
+									layer.confirm('确定删除?', function(index) {
+										// 向服务端发送删除指令
+										deleteCustomerByCid(data.customerid);
+										obj.del(); // 删除对应行（tr）的DOM结构
+										layer.close(index);
+									});
+								} else if (layEvent === 'edit') {
+									layer.msg('编辑操作');
+								}
+							});
+							//监听单元格编辑
+							table.on('edit(customer)', function(obj) {
+								var value = obj.value //得到修改后的值
+								, data = obj.data //得到所在行所有键值
+								, field = obj.field; //得到字段
+								layer.msg('[单位名称: ' + data.customername + '] '
+										+ field + ' 字段更改为：' + value);
+							});
+
+							var $ = layui.$, active = {
+								reloadCustomerTable : function() {
+									//执行重载
+									table.reload('customerTable', {
+										page : {
+											curr : 1
+										//重新从第 1 页开始
+										},
+										where : {
+											codeOrName : $('#codeOrName').val()
+													.replace(/[ ]/g, ""),
+											membership : $('#membership').val()
+										}
+									});
+								},
+								addSalesInfo : function() {
+									var checkStatus = table
+											.checkStatus('customerTable'), data = checkStatus.data;
+									if (data.length == 0) {
+										layer.msg('请选择一个单位')
+										return
+									} else if (data.length > 1) {
+										layer.msg('只能选择一个单位')
+										return
+									} else {
+										 newCustomername = data[0].customername;
+										newReceipt = data[0].customername1;
+										newAgent = data[0].agent;
+										newMobile = data[0].mobile;
+										aadSalesForm('新增销售信息',data);
+										return  
+									}
+
+								},
+								addCustomerInfo: function() {
+									var checkStatus = table
+												.checkStatus('customerTable'), data = checkStatus.data;
+										if (data.length == 0) {
+											addCustomerInfo();
+											return
+										} else if (data.length > 1) {
+											layer.msg('只能选择一个单位')
+											return
+										} else {
+											 newCustomername = data[0].customername;
+											 addCustomerInfo();
+											return  
+										}
+			
+									}
+								
+
+							      };    
+
+							$('.customer_search').on('click', function() {
+								var type = $(this).data('type');
+								active[type] ? active[type].call(this) : '';
+							});
+							$('#aadSales').on('click', function() {
+								var type = $(this).data('type');
+								active[type] ? active[type].call(this) : '';
+							});
+							$('#aadCustomer').on('click', function() {
+								var type = $(this).data('type');
+								active[type] ? active[type].call(this) : '';
+							});
+						});
+	</script>
+</body>
+</html>

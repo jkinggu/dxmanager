@@ -1,0 +1,54 @@
+package com.dx.dxmanage.handler;
+
+import javax.annotation.Resource;
+
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dx.dxmanage.po.SP;
+import com.dx.dxmanage.service.ISPService;
+import com.dx.dxmanage.service.ISalesService;
+
+@Controller
+public class SPHandler {
+	@Resource
+	private ISPService spService;
+	@Resource
+	private ISalesService salesService;
+
+	// 新增销售与银行流水的对应记录
+	@RequestMapping("insertSP.dx")
+	@ResponseBody
+	public void insertSP(String salesids, String paymentids) {
+		try {
+			String[] saleses = salesids.split("-");
+			String[] payments = paymentids.split("-");
+			// 将销售记录salesid和银行流水paymentid对应存储
+			SP sp = new SP();
+			if (saleses.length >= payments.length) {
+				for (int i = 1; i < saleses.length; i++) {
+					for (int j = 1; j < payments.length; j++) {
+						sp.setSalesid(Integer.parseInt(saleses[i]));
+						sp.setPaymentid(Integer.parseInt(payments[j]));
+						spService.insertSelective(sp);
+					}
+				}
+			} else {
+				for (int j = 1; j < payments.length; j++) {
+					for (int i = 1; i < saleses.length; i++) {
+						sp.setPaymentid(Integer.parseInt(payments[j]));
+						sp.setSalesid(Integer.parseInt(saleses[i]));
+						spService.insertSelective(sp);
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+	}
+
+}

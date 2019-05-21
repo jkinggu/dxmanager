@@ -1,0 +1,76 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<title>登录界面</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel='stylesheet'  type='text/css'  href="<%=basePath%>css/style2.css" />
+<link rel='stylesheet' type='text/css'  href="<%=basePath%>/css/simpleAlert.css"/>
+<script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/js/simpleAlert.js"></script>
+<script type="text/javascript">
+function check_form(){
+	var username = $("#username").val();
+	var userpass = $("#userpass").val();
+	if(!username){
+		var onlyChoseAlert = simpleAlert({
+            "content":"用户名不能为空",
+            "buttons":{
+                "确定":function () {
+                    onlyChoseAlert.close();
+                }
+            }
+        });
+        return;
+	}
+	if(!userpass){
+		var onlyChoseAlert = simpleAlert({
+            "content":"密码不能为空",
+            "buttons":{
+                "确定":function () {
+                    onlyChoseAlert.close();
+                }
+            }
+        });
+        return;
+	}
+	$("#login_form").submit(); 
+}
+</script>
+</head>
+<body>
+	<div class="main">
+		<div class="login">
+			<h1>登录</h1>
+			<div class="inset">
+				<!--start-main-->
+				<form action="expertorslogin.dx" method="post" id="login_form"><!-- logininit/ -->
+			         <div>
+			         	<h2>管理员登录</h2>
+						<span><label>用户名</label></span>
+						<span><input type="text" class="textbox" name="username" id="username"></span>
+					 </div>
+					 <div>
+						<span><label>密码</label></span>
+					    <span><input type="password" class="password" name="password" id="userpass"></span>
+					 </div>
+						<p style="color: red;"><c:out value="${msg }" /> </p>
+					<div class="sign">
+                        <input type="button" value="登录" class="submit" id="login_btn" onclick="check_form()"/>
+					</div>
+					</form>
+				</div>
+			</div>
+		<!--//end-main-->
+		</div>
+<div style="text-align:center;">
+</div>
+
+</body>
+</html>

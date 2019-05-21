@@ -1,0 +1,19 @@
+package com.dx.dxmanage.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.dx.dxmanage.po.Sales;
+
+public interface ISalesService {
+
+	// 增添销售信息
+	int addSales(Sales sales);
+
+	// 查询所有交易记录
+	List<Sales> selectAllSales(Map<String, Object> salesMap);
+
+	// 更新销售信息
+	int updateSales(Sales sales);
+
+}

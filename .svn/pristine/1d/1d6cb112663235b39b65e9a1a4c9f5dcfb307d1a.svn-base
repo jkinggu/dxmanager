@@ -1,0 +1,19 @@
+package com.dx.dxmanage.service;
+
+import java.util.List;
+
+import com.dx.dxmanage.po.User;
+
+
+
+public interface IUserService {
+	// 查询所有用户
+	List<User> selectAllUser();
+
+	User getUserByDeptid(String documentstatus);
+
+	User login(String username, String password);
+
+	// 跟新用户
+	int updateByPrimaryKeySelective(User record);
+}

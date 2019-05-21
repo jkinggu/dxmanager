@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.PermissionMapper">
+	<resultMap id="BaseResultMap"
+		type="com.dx.dxmanage.po.Permission">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="url" jdbcType="VARCHAR" property="url" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="codeid" jdbcType="VARCHAR" property="codeid" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, url, name,codeid
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="java.lang.Long"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from u_permission
+		where id = #{id,jdbcType=BIGINT}
+	</select>
+	<!-- 根据用户ID查询permission(权限)信息 -->
+	<select id="selectPermissionByUserId"
+		resultType="java.lang.String">
+		select p.url from u_permission p , u_role_permission rp,
+		u_user_role ur
+		where uid =#{id,jdbcType=BIGINT} and p.id = rp.pid and
+		rp.rid = ur.rid
+	</select>
+	<!-- 根据角色ID查询permission(权限)信息 -->
+	<select id="selectPermissionByRoleId" resultMap="BaseResultMap">
+		select p.* from
+		u_permission p , u_role_permission rp
+		where rid
+		=#{id} and p.id =
+		rp.pid
+	</select>
+	<!-- 查询所有权限 -->
+	<select id="selectAllPermission" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from u_permission order by codeid asc
+	</select>
+	<!-- 根据一级权限 -->
+	<select id="selectPermissionsOne" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from u_permission where length(codeid) = 2
+	</select>
+	<!-- 根据二级权限 -->
+	<select id="selectPermissionsTwo" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from u_permission where length(codeid) = 4 and SUBSTRING(codeid,1,2) =
+		#{codeid }
+	</select>
+	<!-- 根据三级权限 -->
+	<select id="selectPermissionsThree" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from u_permission where length(codeid) = 6 and SUBSTRING(codeid,1,4) =
+		#{codeid}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+		delete from
+		u_permission
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+	<insert id="insert"
+		parameterType="com.dx.dxmanage.po.Permission">
+		insert into u_permission (id, url, name,codeid)
+		values
+		(#{id,jdbcType=BIGINT}, #{url,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR}),#{codeid,jdbcType=VARCHAR})
+	</insert>
+	<insert id="insertSelective"
+		parameterType="com.dx.dxmanage.po.Permission">
+		insert into u_permission
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="url != null">
+				url,
+			</if>
+			<if test="name != null">
+				name,
+			</if>
+			<if test="codeid != null">
+				codeid,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="url != null">
+				#{url,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="codeid != null">
+				#{codeid,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updatePermission"
+		parameterType="com.dx.dxmanage.po.Permission">
+		update u_permission
+		<set>
+			<if test="url != null">
+				url = #{url,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="codeid != null">
+				codeid = #{codeid,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	<update id="updateByPrimaryKey"
+		parameterType="com.dx.dxmanage.po.Permission">
+		update u_permission
+		set url = #{url,jdbcType=VARCHAR},
+		name = #{name,jdbcType=VARCHAR},codeid = #{codeid,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+</mapper>

@@ -1,0 +1,107 @@
+//获得所有单位的县区供select选择
+function gainMembership() {
+	var statem;
+	$.ajax({
+		type : "POST",
+		url : "customer/selectAllMembership.dx",
+		dataType : "json",
+		async : false,
+		success : function(msg) {
+			$.each(msg, function(i, customer) {
+				statem = statem + "<option value='" + customer.membership
+						+ "'>" + customer.membership + "</option>";
+			});
+		},
+		error : function() {
+			layer.alert("获取县区失败！");
+		}
+	});
+	return statem;
+};
+
+// 删除客户
+function deleteCustomerByCid(customerid) {
+	$.ajax({
+		type : 'post',
+		data : {
+			'customerid' : customerid
+		},
+		dataType : 'json',
+		async : false,
+		url : 'customer/deleteByPrimaryKey.dx',
+		success : function(msg) {
+			if (msg == 1) {
+				layer.msg('删除成功', {
+					icon : 1
+				})
+			} else {
+				layer.msg('删除失败', {
+					icon : 2
+				})
+			}
+		},
+		error : function() {
+			layer.msg('网络异常，请重新操作', {
+				icon : 5
+			})
+		}
+
+	})
+}
+
+// 新增单位信息
+function addCustomerInfo() {
+	layer.open({
+		type : 2,
+		title : '新增单位',
+		content : 'jsp/customer/addCustomerForm.jsp',
+		area : [ '500px', '600px' ]
+	});
+}
+// 编辑单位信息
+function editCustomer(customerid) {
+	layer.open({
+		type : 2,
+		title : '编辑单位',
+		content : 'customer/editCustomer.dx?customerid=' + customerid,
+		area : [ '500px', '600px' ]
+	});
+}
+
+// 新增单位信息时，输入单位名称时自动填充开票名称
+function inputCustomername1() {
+	$("#customername1").val($("#customername").val());
+}
+
+// js中数值位数不够自动补0
+function PrefixInteger(num, length) {
+	return (Array(length).join('0') + num).slice(-length);
+}
+// 获取子单位的最大单位编码
+function selectSubCMaxCode(customer) {
+	var ccode;
+	$.ajax({
+		type : 'post',
+		data : {
+			'membership' : customer.membership,
+			'customercode' : customer.customercode
+		},
+		async:false,
+		url : 'customer/selectSubCMaxCode.dx',
+		success : function(result) {
+			if(result==''){
+				ccode = customer.customercode+'01';
+			}else{
+				str = result.substr(1,result.length-2);//stringObject.substr(start,length) 截取的是开始与字符串长度。
+				ccode = PrefixInteger(Number(str) + 1, str.length);
+			}
+		},
+		error : function(data,type, err) {
+			layer.msg('网络异常，请重新操作', {
+				icon : 5
+			})
+		}
+
+	})
+	return ccode;
+}

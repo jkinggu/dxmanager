@@ -1,0 +1,114 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<base href="<%=basePath%>">
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>单位导航</title>
+
+<link rel="stylesheet" href="<%=basePath%>/plugins/layui/css/layui.css"
+	media="all">
+<link rel="stylesheet" type="text/css"
+	href="http://www.jq22.com/jquery/font-awesome.4.6.0.css">
+<link rel="stylesheet" href="<%=basePath%>/build/css/app.css"
+	media="all">
+<script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+<script src="js/wdf/sales.js"></script>
+</head>
+<body>
+	<div>
+		<ul id="customerTree"></ul>
+	</div>
+	<script src="./plugins/layui/layui.js"></script>
+	<script>
+		layui.config({
+			base : 'build/js/',
+		}).use(
+				[ 'message', 'tree', 'layer', 'element' ],
+				function() {
+					layer = layui.layer, $ = layui.jquery, tree = layui.tree,
+							element = layui.element;
+
+					//加载单位菜单tree实例
+					/* var getCustomerList = function(customer) {
+						var customerList;
+						$.ajax({
+							type : "post",
+							dataType : "json",
+							url : "customer/selectPartCustomerList.dx",
+							data : {
+								"customercode" : customer.customercode,
+								"membership" : customer.membership
+							},
+							error : function() {
+								layer.msg('获取子菜单失败', {
+									icon : 2
+								});
+							},
+							success : function(msg) {
+								customerList = msg;
+							}
+						});
+						return customerList;
+					}
+					var createTree = function(node) {
+						node = function() {
+							var arr = [];
+
+						};
+						return node;
+					};
+
+					layui.tree({
+						elem : '#customerTree', //指定元素
+						nodes : createTree(),
+						click : function(item) { //点击节点回调
+							layer.msg(item.customercode);
+							getCustomerList(item);
+							//layer.closeAll();
+						}
+					});
+					 */
+					//加载单位菜单tree实例
+					$(function() {
+						$.ajax({
+							type : "post",
+							dataType : "json",
+							url : "jsp/test/treeDemo.txt",
+							error : function() {
+								layer.msg('导航渲染失败', {
+									icon : 2
+								});
+							},
+							success : function(msg) {
+								layuiTree(msg)
+							}
+						});
+					});
+					function layuiTree(data) {
+						layui.tree({
+							elem : '#customerTree' //指定元素
+							,
+							skin : 'wdf',
+							target : '_blank' //节点打开方式（即a的target值），必须href设定后才有效
+							,
+							nodes : data,
+							click : function(item) { //点击节点回调
+								window.top['_CACHE'] = item.id;
+								layer.closeAll();
+							}
+						});
+					}
+				})
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+package com.dx.dxmanage.dao;
+
+import com.dx.dxmanage.po.SP;
+
+public interface SPMapper {
+
+	int deleteByPrimaryKey(Integer spid);
+
+
+	// 新增销售与银行流水的对应记录
+	int insertSelective(SP record);
+
+	SP selectByPrimaryKey(Integer spid);
+
+	int updateByPrimaryKeySelective(SP record);
+
+}

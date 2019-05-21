@@ -1,0 +1,52 @@
+package com.dx.dxmanage.service.impl;
+
+import java.util.List;
+
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.dx.dxmanage.dao.PaymentMapper;
+import com.dx.dxmanage.po.Payment;
+import com.dx.dxmanage.service.IPaymentService;
+
+@Service
+public class PaymentServiceImpl implements IPaymentService {
+	private PaymentMapper paymentMapper;
+
+	@Resource
+	public void setPaymentMapper(PaymentMapper paymentMapper) {
+		this.paymentMapper = paymentMapper;
+	}
+
+	// 通过主键paymentid查询流水信息
+	public Payment selectByPrimaryKey(Integer paymentid) {
+		// TODO Auto-generated method stub
+		return paymentMapper.selectByPrimaryKey(paymentid);
+	}
+
+	// 查询所有流水信息
+	@Override
+	public List<Payment> selectAllPayment(Map<String, Object> paymentMap) {
+		// TODO Auto-generated method stub
+		return paymentMapper.selectAllPayment(paymentMap);
+	}
+
+	public int insertPayment(Payment record) {
+		// TODO Auto-generated method stub
+		return paymentMapper.insertPayment(record);
+	}
+
+	public Payment selectPaymentByPaynum(String paynum) {
+		// TODO Auto-generated method stub
+		return paymentMapper.selectPaymentByPaynum(paynum);
+	}
+
+	public int deleteByPaymentid(Integer paymentid) {
+		// TODO Auto-generated method stub
+		return paymentMapper.deleteByPaymentid(paymentid);
+	}
+
+}

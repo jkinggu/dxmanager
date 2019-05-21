@@ -1,0 +1,24 @@
+package com.dx.dxmanage.service;
+
+import java.util.List;
+
+import com.dx.dxmanage.po.Goods;
+
+
+
+public interface IGoodsService {
+	// 查询所有商品
+	List<Goods> selectAllGoods();
+
+	// 根据主键商品id查询商品
+	Goods selectByPrimaryKey(Integer goodsid);
+
+	// 添加商品
+	int insertGoods(Goods record);
+
+	// 根据主键goodsid删除商品
+	int deleteByPrimaryKey(Integer goodsid);
+	
+	//跟新商品信息
+	int updateGoods(Goods goods);
+}

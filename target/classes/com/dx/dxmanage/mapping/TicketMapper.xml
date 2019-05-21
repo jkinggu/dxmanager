@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.TicketMapper">
+  <resultMap id="BaseResultMap" type="com.dx.dxmanage.po.Ticket">
+    <id column="ticketid" jdbcType="INTEGER" property="ticketid" />
+    <result column="tickettime" jdbcType="VARCHAR" property="tickettime" />
+    <result column="beginnum" jdbcType="VARCHAR" property="beginnum" />
+    <result column="ticketamount" jdbcType="INTEGER" property="ticketamount" />
+    <result column="endnum" jdbcType="VARCHAR" property="endnum" />
+    <result column="usenum" jdbcType="VARCHAR" property="usenum" />
+  </resultMap>
+  
+  <sql id="Base_Column_List">
+    ticketid,tickettime, beginnum, ticketamount, endnum,usenum
+  </sql>
+ 
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ticketinfo
+    where ticketid = #{ticketid,jdbcType=INTEGER}
+  </select>
+  
+  <!-- 查询所有发票记录 -->
+  <select id="selectAllTicket"  resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ticketinfo order by tickettime desc
+  </select>
+  <!-- 查询将要用的票本 -->
+  <select id="selectWillUseTicket"  resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ticketinfo WHERE ticketid = (SELECT MIN(ticketid) FROM ticketinfo WHERE endnum != usenum)
+  </select>
+  <!-- 删除发票号段信息 -->
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from ticketinfo
+    where ticketid = #{ticketid,jdbcType=INTEGER}
+  </delete>
+  <!-- 新增发票信息 -->
+  <insert id="insertSelective" parameterType="com.dx.dxmanage.po.Ticket">
+    insert into ticketinfo
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="ticketid != null">
+        ticketid,
+      </if>
+      <if test="tickettime != null">
+        tickettime,
+      </if>
+      <if test="beginnum != null">
+        beginnum,
+      </if>
+      <if test="ticketamount != null">
+        ticketamount,
+      </if>
+      <if test="endnum != null">
+        endnum,
+      </if>
+      <if test="usenum != null">
+        usenum,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="ticketid != null">
+        #{ticketid,jdbcType=INTEGER},
+      </if>
+      <if test="tickettime!= null">
+        #{tickettime,jdbcType=VARCHAR},
+      </if>
+      <if test="beginnum != null">
+        #{beginnum,jdbcType=VARCHAR},
+      </if>
+      <if test="ticketamount != null">
+        #{ticketamount,jdbcType=INTEGER},
+      </if>
+      <if test="endnum != null">
+        #{endnum,jdbcType=VARCHAR},
+      </if>
+      <if test="usenum != null">
+        #{usenum,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+ <!-- 更新发票信息 -->
+  <update id="updateTicket" parameterType="com.dx.dxmanage.po.Ticket">
+    update ticketinfo
+    <set>
+      <if test="tickettime!= null">
+       tickettime =  #{tickettime,jdbcType=VARCHAR},
+      </if>
+      <if test="beginnum != null">
+        beginnum = #{beginnum,jdbcType=VARCHAR},
+      </if>
+      <if test="ticketamount != null">
+        ticketamount = #{ticketamount,jdbcType=INTEGER},
+      </if>
+      <if test="endnum != null">
+        endnum = #{endnum,jdbcType=VARCHAR},
+      </if>
+      <if test="usenum != null">
+        usenum = #{usenum,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where ticketid = #{ticketid,jdbcType=INTEGER}
+  </update>
+</mapper>

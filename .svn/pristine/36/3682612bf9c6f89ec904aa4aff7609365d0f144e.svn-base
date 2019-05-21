@@ -1,0 +1,8 @@
+package com.dx.dxmanage.service;
+
+import java.util.Set;
+
+public interface IPermissionService {
+	//根据用户id查询权限
+    Set<String> selectPermissionByUserId(Long userId);
+}

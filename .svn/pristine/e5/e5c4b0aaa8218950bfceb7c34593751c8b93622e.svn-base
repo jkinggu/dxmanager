@@ -1,0 +1,363 @@
+package com.dx.dxmanage.handler;
+
+import java.util.ArrayList;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.DisabledAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dx.dxmanage.po.Role;
+import com.dx.dxmanage.po.User;
+import com.dx.dxmanage.po.UserRole;
+import com.dx.dxmanage.service.IRoleService;
+import com.dx.dxmanage.service.IUserRoleService;
+import com.dx.dxmanage.service.IUserService;
+import com.dx.dxmanage.shiro.BaseController;
+import com.dx.dxmanage.shiro.LoggerUtils;
+import com.dx.dxmanage.shiro.StringUtils;
+import com.dx.dxmanage.shiro.TokenManager;
+import com.dx.dxmanage.util.DateUtil;
+
+@Controller
+@RequestMapping("user")
+public class UserHandler extends BaseController {
+	@Resource
+	private IUserService userService;
+	@Resource
+	private IRoleService roleService;
+	@Resource
+	private IUserRoleService userRoleService;
+
+	@RequestMapping(value = "login", method = RequestMethod.GET)
+	public ModelAndView login() {
+		return new ModelAndView("user/login");
+	}
+
+	/**
+	 * 登录提交
+	 * 
+	 * @param user
+	 *            登录的User
+	 * @param rememberMe
+	 *            是否记住
+	 * @param request
+	 *            request，用来取登录之前Url地址，用来登录后跳转到没有登录之前的页面。
+	 * @return
+	 */
+	@RequestMapping("userLogin.dx")
+	@ResponseBody
+	public Map<String, Object> submitLogin(User user, Boolean rememberMe, HttpServletRequest request) {
+		try {
+			user = TokenManager.login(user, rememberMe);
+			resultMap.put("status", 200);
+			resultMap.put("message", "登录成功");
+			String url = null;
+
+			/**
+			 * shiro 获取登录之前的地址
+			 */
+			/*
+			 * SavedRequest savedRequest = WebUtils.getSavedRequest(request); if (null !=
+			 * savedRequest) { url = savedRequest.getRequestUrl(); }
+			 */
+
+			/* LoggerUtils.fmtDebug(getClass(), "获取登录之前的URL:[%s]", url); */
+			// 如果登录之前没有地址，那么就跳转到首页。
+			if (StringUtils.isBlank(url)) {
+				url = request.getContextPath() + "/jsp/index.jsp";
+			}
+			// 跳转地址
+			resultMap.put("back_url", url);
+		} catch (DisabledAccountException e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "当前用户已被禁用。");
+		} catch (UnknownAccountException e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "用户名不存在");
+		} catch (Exception e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "用户名或密码错误");
+		}
+
+		return resultMap;
+	}
+
+	/**
+	 * 退出
+	 */
+	@RequestMapping(value = "logout.dx", method = RequestMethod.GET)
+	@ResponseBody
+	public Map<String, Object> logout() {
+		try {
+			TokenManager.logout();
+			resultMap.put("status", 200);
+		} catch (Exception e) {
+			resultMap.put("status", 500);
+			logger.error("errorMessage:" + e.getMessage());
+			LoggerUtils.fmtError(getClass(), e, "退出出现错误，%s。", e.getMessage());
+		}
+		return resultMap;
+	}
+
+	/**
+	 * 查询所有系统用户
+	 * 
+	 * @return
+	 */
+	@RequestMapping("selectAllUser.dx")
+	@ResponseBody
+	public Map<String, Object> selectAllUser() {
+		Map<String, Object> map = new HashMap<>();
+		List<User> userList = new ArrayList<>();
+		try {
+			userList = userService.selectAllUser();
+			map.put("data", userList);
+			map.put("code", 0);
+			map.put("msg", "汪登峰");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return map;
+
+	}
+
+	/**
+	 * 查询所有系统用户的用户角色
+	 * 
+	 * @return
+	 */
+	@RequestMapping("selectUser_role.dx")
+	@ResponseBody
+	public Map<String, Object> selectUser_role() {
+		Map<String, Object> resultMap = new HashMap<>();
+		List<User> userList = new ArrayList<>();
+		try {
+			userList = userService.selectAllUser();
+			for (User user : userList) {
+				List<Role> roles = roleService.selectRoleByUid(user.getId());
+				user.setRoles(roles);
+			}
+			resultMap.put("data", userList);
+			resultMap.put("code", 0);
+			resultMap.put("msg", "汪登峰");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 添加用户
+	 * 
+	 * @param user
+	 * @return
+	 */
+	@RequestMapping("addUser.dx")
+	@ResponseBody
+	public Map<String, Object> addUser(User user) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			User user2 = userService.selectUserByUsername(user.getUsername());
+			if (user2 == null) {
+				user.setUsername(user.getUsername());
+				user.setCreateTime(new Date());
+				// user.setPassword(String.valueOf(new Random().nextInt(1000000)));
+				user.setPassword("123456");
+				userService.insertSelective(user);
+				resultMap.put("code", 200);
+				resultMap.put("msg", "添加成功，请进行授权设置");
+			} else {
+				resultMap.put("code", 300);
+				resultMap.put("msg", "用户名已存在");
+			}
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "新增用户失败");
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 添加用户
+	 * 
+	 * @param userid
+	 * @return
+	 */
+	@RequestMapping("deleteUser.dx")
+	@ResponseBody
+	public Map<String, Object> deleteUser(Long userid) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			userService.deleteByPrimaryKey(userid);
+			resultMap.put("code", 200);
+			resultMap.put("msg", "已删除");
+		} catch (Exception e) {
+			resultMap.put("code", 400);
+			resultMap.put("msg", "删除失败");
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 更新系统用户的状态（启用：1,；禁用：0）
+	 * 
+	 * @param userid
+	 * @param status
+	 * @return
+	 */
+	@RequestMapping("updateUserStatus.dx")
+	@ResponseBody
+	public Map<String, Object> updateUserStatus(Long userid, Long status) {
+		int a = 0;
+		User user = new User();
+		try {
+			user.setId(userid);
+			user.setStatus(status);
+			a = userService.updateByPrimaryKeySelective(user);
+			if (a == 1) {
+				if (status == 1) {
+					resultMap.put("status", 200);
+					resultMap.put("msg", "已启用");
+				} else if (status == 0) {
+					resultMap.put("status", 200);
+					resultMap.put("msg", "已禁用");
+				}
+
+			} else {
+				if (status == 1) {
+					resultMap.put("status", 300);
+					resultMap.put("msg", "启用失败");
+				} else if (status == 0) {
+					resultMap.put("status", 300);
+					resultMap.put("msg", "禁用失败");
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	/**
+	 * 展示用户个人资料页面
+	 */
+	@RequestMapping("personalMessagePage.dx")
+	public ModelAndView personalMessagePage() {
+		ModelAndView mav = new ModelAndView();
+		try {
+			User user = (User) SecurityUtils.getSubject().getPrincipal();
+			String createTime = DateUtil.getDate(user.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
+			String lastLoginTime = DateUtil.getDate(user.getLastLoginTime(), "yyyy-MM-dd HH:mm:ss");
+
+			mav.addObject("createTime", createTime);
+			mav.addObject("lastLoginTime", lastLoginTime);
+			mav.addObject("status", user.getStatus() == 1 ? "激活" : "禁用");
+			mav.addObject("user", user);
+			mav.setViewName("/user/personalMessage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return mav;
+	}
+
+	/**
+	 * 密码修改
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "updatePswd.dx", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> updatePswd(String pswd, String newPswd) {
+		Map<String, Object> resultMap = new LinkedHashMap<>();
+		try {
+
+			// 获取当前登录用户
+			User user = TokenManager.getToken();
+			String password = user.getPassword();
+			if (!password.equals(pswd)) {
+				resultMap.put("code", 300);
+				resultMap.put("msg", "原始密码不正确。");
+				return resultMap;
+			}
+			user.setPassword(newPswd);
+			// 修改密码
+			userService.updateByPrimaryKeySelective(user);
+			// 重新登录一次
+			// TokenManager.login(user, Boolean.TRUE);
+			resultMap.put("code", 200);
+			resultMap.put("msg", "修改成功,请返回重新登录");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultMap;
+	}
+
+	/**
+	 * 根据用户id清空角色。
+	 * 
+	 * @param userIds
+	 *            用户ID ，以‘,’间隔
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "clearRoleByUserIds.dx")
+	@ResponseBody
+	public Map<String, Object> clearRoleByUserIds(String userIds) {
+		return userRoleService.deleteRoleByUserIds(userIds);
+	}
+
+	/**
+	 * 更新用户拥有角色
+	 * 
+	 * @param selectRoleIds
+	 * @param userid
+	 * @return
+	 */
+
+	@RequestMapping(value = "updateUser_Roles.dx")
+	@ResponseBody
+	public Map<String, Object> updateUser_Roles(@RequestParam(value = "selectRoleIds[]") Long[] selectRoleIds,
+			Long userid) {
+		Map<String, Object> resultMap = new LinkedHashMap<>();
+		try {
+			// 首先清除该用户的所有角色
+			userRoleService.deleteUserRoleByUserId(userid);
+			for (Long rid : selectRoleIds) {
+				UserRole userRole = new UserRole(userid, rid);
+				userRoleService.insertSelective(userRole);
+			}
+			resultMap.put("code", 200);
+			resultMap.put("msg", "操作成功");
+		} catch (Exception e) {
+			resultMap.put("code", 300);
+			resultMap.put("msg", "操作失败");
+		}
+		return resultMap;
+	}
+
+}

@@ -1,0 +1,91 @@
+package com.dx.dxmanage.service.impl;
+
+import java.util.ArrayList;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.dx.dxmanage.dao.CustomerMapper;
+import com.dx.dxmanage.po.Customer;
+import com.dx.dxmanage.service.ICustomerService;
+
+@Service
+public class CustomerServiceImpl implements ICustomerService {
+	private CustomerMapper customerMapper;
+
+	@Resource
+	public void setCustomerMapper(CustomerMapper customerMapper) {
+		this.customerMapper = customerMapper;
+	}
+
+	public Customer selectByCustomerid(Integer customerid) {
+		// TODO Auto-generated method stub
+		return customerMapper.selectByCustomerid(customerid);
+	}
+
+	// 查询所有用户
+	public List<Customer> selectAllCustomer() {
+
+		return customerMapper.selectAllCustomer();
+	}
+
+	public List<Customer> selectAllMembership() {
+		// TODO Auto-generated method stub
+		return customerMapper.selectAllMembership();
+	}
+
+	public List<Customer> selectDanwei2(String membership) {
+		// TODO Auto-generated method stub
+		List<Customer> list = new ArrayList<Customer>();
+		list = customerMapper.selectDanwei2(membership);
+		return list;
+	}
+
+	public List<Customer> selectDanwei3(Map paramMap) {
+		// TODO Auto-generated method stub
+		List<Customer> list = new ArrayList<Customer>();
+		list = customerMapper.selectDanwei3(paramMap);
+		return list;
+	}
+
+	public List<Customer> selectDanwei4(Map paramMap) {
+		// TODO Auto-generated method stub
+		List<Customer> list = new ArrayList<Customer>();
+		list = customerMapper.selectDanwei4(paramMap);
+		return list;
+	}
+
+	public List<Customer> selectByDimCustomername(String customername) {
+		// TODO Auto-generated method stub
+		return customerMapper.selectByDimCustomername(customername);
+	}
+
+	public int insertSelective(Customer record) {
+		// TODO Auto-generated method stub
+		return customerMapper.insertSelective(record);
+	}
+
+	@Override
+	public List<Customer> selectCustomerByCodeOrName(String codeOrName) {
+		// TODO Auto-generated method stub
+		return customerMapper.selectCustomerByCodeOrName(codeOrName);
+	}
+
+	@Override
+	public List<Customer> selectCustomerByCodeOrNameAndMembership(String codeOrName, String membership) {
+		// TODO Auto-generated method stub
+		return customerMapper.selectCustomerByCodeOrNameAndMembership(codeOrName,membership);
+	}
+
+	@Override
+	public List<Customer> selectCustomerByMembership(String membership) {
+		// TODO Auto-generated method stub
+		return customerMapper.selectCustomerByMembership(membership);
+	}
+
+}

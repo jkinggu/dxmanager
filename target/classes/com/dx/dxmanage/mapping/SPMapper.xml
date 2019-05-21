@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.SPMapper">
+	<resultMap id="BaseResultMap" type="com.dx.dxmanage.po.SP">
+		<result column="salesid" jdbcType="INTEGER" property="salesid" />
+		<result column="paymentid" jdbcType="INTEGER"
+			property="paymentid" />
+	</resultMap>
+	<!--此mapper开启二级缓存 -->
+	<!-- <cache /> -->
+	<sql id="Base_Column_List">
+		salesid, paymentid
+	</sql>
+	<!-- 根据条件查询销售-流水关联 -->
+	<select id="selectSps" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from spinfo
+		<where>
+			1=1
+			<if test="salesid!=''and salesid!=null">
+				and salesid = #{salesid}
+			</if>
+			<if test="paymentid!=''and paymentid!=null">
+				and paymentid = #{paymentid}
+			</if>
+		</where>
+	</select>
+	<delete id="deleteByPrimaryKey"
+		parameterType="java.lang.Integer">
+		delete from spinfo
+		where spid = #{spid,jdbcType=INTEGER}
+	</delete>
+
+	<!-- 新增销售与银行流水的对应记录 -->
+	<insert id="insertSelective"
+		parameterType="com.dx.dxmanage.po.SP">
+		insert into spinfo
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="salesid != null">
+				salesid,
+			</if>
+			<if test="paymentid != null">
+				paymentid,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="salesid != null">
+				#{salesid,jdbcType=INTEGER},
+			</if>
+			<if test="paymentid != null">
+				#{paymentid,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
+</mapper>

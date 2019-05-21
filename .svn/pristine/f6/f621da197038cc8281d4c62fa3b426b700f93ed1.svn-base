@@ -1,0 +1,176 @@
+package com.dx.dxmanage.handler;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.shiro.authc.DisabledAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.apache.shiro.web.util.SavedRequest;
+import org.apache.shiro.web.util.WebUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dx.dxmanage.po.User;
+import com.dx.dxmanage.service.IUserService;
+import com.dx.dxmanage.shiro.BaseController;
+import com.dx.dxmanage.shiro.LoggerUtils;
+import com.dx.dxmanage.shiro.StringUtils;
+import com.dx.dxmanage.shiro.TokenManager;
+
+@Controller
+@RequestMapping("user")
+public class UserHandler extends BaseController {
+	@Resource
+	private IUserService userService;
+
+	@RequestMapping(value = "login", method = RequestMethod.GET)
+	public ModelAndView login() {
+		return new ModelAndView("user/login");
+	}
+
+	/**
+	 * 登录提交
+	 * 
+	 * @param user
+	 *            登录的User
+	 * @param rememberMe
+	 *            是否记住
+	 * @param request
+	 *            request，用来取登录之前Url地址，用来登录后跳转到没有登录之前的页面。
+	 * @return
+	 */
+	@RequestMapping("userLogin.dx")
+	@ResponseBody
+	public Map<String, Object> submitLogin(User user, Boolean rememberMe, HttpServletRequest request) {
+		try {
+			user = TokenManager.login(user, rememberMe);
+			resultMap.put("status", 200);
+			resultMap.put("message", "登录成功");
+			String url = null;
+
+			/**
+			 * shiro 获取登录之前的地址
+			 */
+			/*
+			 * SavedRequest savedRequest = WebUtils.getSavedRequest(request); if (null !=
+			 * savedRequest) { url = savedRequest.getRequestUrl(); }
+			 */
+
+			/* LoggerUtils.fmtDebug(getClass(), "获取登录之前的URL:[%s]", url); */
+			// 如果登录之前没有地址，那么就跳转到首页。
+			if (StringUtils.isBlank(url)) {
+				url = request.getContextPath() + "/jsp/index.jsp";
+			}
+			// 跳转地址
+			resultMap.put("back_url", url);
+		} catch (DisabledAccountException e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "当前用户已被禁用。");
+		} catch (UnknownAccountException e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "用户名不存在");
+		} catch (Exception e) {
+			resultMap.put("status", 500);
+			resultMap.put("message", "用户名或密码错误");
+		}
+
+		return resultMap;
+	}
+
+	/**
+	 * 退出
+	 */
+	@RequestMapping(value = "logout.dx", method = RequestMethod.GET)
+	@ResponseBody
+	public Map<String, Object> logout() {
+		try {
+			TokenManager.logout();
+			resultMap.put("status", 200);
+		} catch (Exception e) {
+			resultMap.put("status", 500);
+			logger.error("errorMessage:" + e.getMessage());
+			LoggerUtils.fmtError(getClass(), e, "退出出现错误，%s。", e.getMessage());
+		}
+		return resultMap;
+	}
+
+	// 查询所有系统用户
+	@RequestMapping("selectAllUser.dx")
+	@ResponseBody
+	public Map<String, Object> selectAllUser() {
+		Map<String, Object> map = new HashMap<>();
+		List<User> userList = new ArrayList<>();
+		try {
+			userList = userService.selectAllUser();
+			map.put("data", userList);
+			map.put("code", 0);
+			map.put("msg", "汪登峰");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return map;
+
+	}
+//添加用户
+	@RequestMapping("addUser.dx")
+	@ResponseBody
+	public int  addUser(String username) {
+		int a = 0;
+		User user = new User();
+		try {
+			user.setUsername(username);
+			user.setCreateTime(new Date());
+			user.setPassword(String.valueOf( new Random().nextInt(1000000)));
+			a = userService.insertSelective(user);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+		
+	}
+	// 更新系统用户的状态（启用：1,；禁用：0）
+	@RequestMapping("updateUserStatus.dx")
+	@ResponseBody
+	public Map<String, Object> updateUserStatus(Long userid, Long status) {
+		int a = 0;
+		User user = new User();
+		try {
+			user.setId(userid);
+			user.setStatus(status);
+			a = userService.updateByPrimaryKeySelective(user);
+			if (a == 1) {
+				if (status == 1) {
+					resultMap.put("status", 200);
+					resultMap.put("msg", "已启用");
+				} else if (status == 0) {
+					resultMap.put("status", 200);
+					resultMap.put("msg", "已禁用");
+				}
+
+			} else {
+				if (status == 1) {
+					resultMap.put("status", 300);
+					resultMap.put("msg", "启用失败");
+				} else if (status == 0) {
+					resultMap.put("status", 300);
+					resultMap.put("msg", "禁用失败");
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+}

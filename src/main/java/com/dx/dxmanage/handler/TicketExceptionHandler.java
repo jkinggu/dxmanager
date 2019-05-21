@@ -1,0 +1,80 @@
+package com.dx.dxmanage.handler;
+
+import java.util.HashMap;
+
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.dx.dxmanage.po.Ticket;
+import com.dx.dxmanage.po.TicketException;
+import com.dx.dxmanage.service.ITicketExceptionSercive;
+import com.dx.dxmanage.service.ITicketService;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
+@Controller
+@RequestMapping("ticketException")
+public class TicketExceptionHandler {
+	@Resource
+	private ITicketExceptionSercive ticketExceptionSercive;
+
+	@Resource
+	private ITicketService ticketService;
+
+	// 查询所有异常发票信息
+	@RequestMapping("selectAllTicketException.dx")
+	@ResponseBody
+	public Map<String, Object> selectAllTickeExcepton(Integer page, Integer limit) {
+		PageHelper.startPage(page, limit);
+		PageInfo<TicketException> pageInfo = null;
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			pageInfo = new PageInfo<TicketException>(ticketExceptionSercive.selectAllTicketException());
+			resultMap.put("code", 0);// 返回状态码，0代表成功，其他为失败
+			resultMap.put("msg", "成功返回");// 返回错误信息
+			resultMap.put("count", pageInfo.getTotal());// 返回从条数
+			resultMap.put("data", pageInfo.getList());// 返回数据data
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultMap;
+
+	}
+
+	// 返回异常发票新增页面
+	@RequestMapping(value = "addTicketExceptionForm.dx", method = RequestMethod.GET)
+	public ModelAndView addTicketExceptionForm(Integer ticketid) {
+		Ticket ticket = null;
+		ModelAndView mav = new ModelAndView();
+		try {
+			ticket = ticketService.selectByPrimaryKey(ticketid);
+			mav.addObject("ticket", ticket);
+			mav.setViewName("ticket/addTicketExceptionForm");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mav;
+	}
+
+	// 新增异常发票信息
+	@RequestMapping("addTicketException.dx")
+	@ResponseBody
+	public Integer addTicket(TicketException ticketException) {
+		Integer a = 0;
+		try {
+			a = ticketExceptionSercive.insertTicketException(ticketException);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return a;
+	}
+
+}

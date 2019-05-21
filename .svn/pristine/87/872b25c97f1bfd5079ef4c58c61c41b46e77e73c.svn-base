@@ -1,0 +1,31 @@
+package com.dx.dxmanage.dao;
+
+import java.util.List;
+
+import java.util.Map;
+
+import com.dx.dxmanage.po.User;
+
+
+public interface UserMapper {
+	int deleteByPrimaryKey(Long id);
+
+	int insertSelective(User record);
+
+	User selectByPrimaryKey(Long id);
+
+	// 跟新用户
+	int updateByPrimaryKeySelective(User record);
+
+
+	// 查询所有用户
+	List<User> selectAllUser();
+
+	// 根据单位id查询查询用户信息
+	User getUserByUsername(String documentstatus);
+
+	User login(String username, String password);
+
+	User login(Map<String, Object> map);
+
+}

@@ -1,0 +1,236 @@
+package com.dx.dxmanage.po;
+
+import java.io.Serializable;
+
+public class Sales implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Integer salesid;
+
+	private String salesdate;
+
+	private String goodsid;
+
+	private Integer quantity;
+
+	private String payment;
+
+	private String customerid;
+
+	private String timelimit;
+
+	private double amount;
+
+	private String ticketnum;
+
+	private String receipt;
+
+	private String wares;
+	private String buyyear;
+	private String paycredentials;
+	private String note;
+	private String linkman;
+	private String tel;
+	private String email;
+
+	private Goods goods;
+
+	private Customer customer;
+
+	public String getBuyyear() {
+		return buyyear;
+	}
+
+	public void setBuyyear(String buyyear) {
+		this.buyyear = buyyear;
+	}
+
+	public String getPaycredentials() {
+		return paycredentials;
+	}
+
+	public void setPaycredentials(String paycredentials) {
+		this.paycredentials = paycredentials;
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public void setNote(String note) {
+		this.note = note;
+	}
+
+	public String getLinkman() {
+		return linkman;
+	}
+
+	public void setLinkman(String linkman) {
+		this.linkman = linkman;
+	}
+
+	public String getTel() {
+		return tel;
+	}
+
+	public void setTel(String tel) {
+		this.tel = tel;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public Goods getGoods() {
+		return goods;
+	}
+
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
+	}
+
+	public void setGoods(Goods goods) {
+		this.goods = goods;
+	}
+
+	public Integer getSalesid() {
+		return salesid;
+	}
+
+	public void setSalesid(Integer salesid) {
+		this.salesid = salesid;
+	}
+
+	public String getSalesdate() {
+		return salesdate;
+	}
+
+	public void setSalesdate(String salesdate) {
+		this.salesdate = salesdate;
+	}
+
+	public String getGoodsid() {
+		return goodsid;
+	}
+
+	public void setGoodsid(String goodsid) {
+		this.goodsid = goodsid == null ? null : goodsid.trim();
+	}
+
+	public Integer getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Integer quantity) {
+		this.quantity = quantity;
+	}
+
+	public String getPayment() {
+		return payment;
+	}
+
+	public void setPayment(String payment) {
+		this.payment = payment == null ? null : payment.trim();
+	}
+
+	public String getCustomerid() {
+		return customerid;
+	}
+
+	public void setCustomerid(String customerid) {
+		this.customerid = customerid == null ? null : customerid.trim();
+	}
+
+	public String getTimelimit() {
+		return timelimit;
+	}
+
+	public void setTimelimit(String timelimit) {
+		this.timelimit = timelimit;
+	}
+
+	public double getAmount() {
+		return amount;
+	}
+
+	public void setAmount(double amount) {
+		this.amount = amount;
+	}
+
+	public String getTicketnum() {
+		return ticketnum;
+	}
+
+	public void setTicketnum(String ticketnum) {
+		this.ticketnum = ticketnum == null ? null : ticketnum.trim();
+	}
+
+	public String getReceipt() {
+		return receipt;
+	}
+
+	public void setReceipt(String receipt) {
+		this.receipt = receipt == null ? null : receipt.trim();
+	}
+
+	public String getWares() {
+		return wares;
+	}
+
+	public void setWares(String wares) {
+		this.wares = wares == null ? null : wares.trim();
+	}
+
+	public Sales() {
+		super();
+	}
+
+	public Sales(Integer salesid, String salesdate, String goodsid, Integer quantity, String payment, String customerid,
+			String timelimit, double amount, String ticketnum, String receipt, String wares, String buyyear,
+			String paycredentials, String note, String linkman, String tel, String email, Goods goods,
+			Customer customer) {
+		super();
+		this.salesid = salesid;
+		this.salesdate = salesdate;
+		this.goodsid = goodsid;
+		this.quantity = quantity;
+		this.payment = payment;
+		this.customerid = customerid;
+		this.timelimit = timelimit;
+		this.amount = amount;
+		this.ticketnum = ticketnum;
+		this.receipt = receipt;
+		this.wares = wares;
+		this.buyyear = buyyear;
+		this.paycredentials = paycredentials;
+		this.note = note;
+		this.linkman = linkman;
+		this.tel = tel;
+		this.email = email;
+		this.goods = goods;
+		this.customer = customer;
+	}
+
+	@Override
+	public String toString() {
+		return "Sales [salesid=" + salesid + ", salesdate=" + salesdate + ", goodsid=" + goodsid + ", quantity="
+				+ quantity + ", payment=" + payment + ", customerid=" + customerid + ", timelimit=" + timelimit
+				+ ", amount=" + amount + ", ticketnum=" + ticketnum + ", receipt=" + receipt + ", wares=" + wares
+				+ ", buyyear=" + buyyear + ", paycredentials=" + paycredentials + ", note=" + note + ", linkman="
+				+ linkman + ", tel=" + tel + ", email=" + email + ", goods=" + goods + ", customer=" + customer + "]";
+	}
+
+	
+
+}

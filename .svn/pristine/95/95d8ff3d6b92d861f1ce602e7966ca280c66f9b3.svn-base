@@ -1,0 +1,145 @@
+//获得所有商品供商品选择栏选择
+function gainGoods() {
+	var statem = "<option value=''> 请选择... </option>";
+	$.ajax({
+		type : "POST",
+		url : "goods/gainGoods.dx",
+		dataType : "json",
+		async : false,
+		success : function(msg) {
+			$.each(msg, function(i, goods) {
+				statem = statem + "<option value='" + goods.goodsid + "'>"
+						+ goods.goodsname + "</option>";
+			});
+		},
+		error : function() {
+			layer.alert("获取商品列表失败！");
+		}
+	});
+	return statem;
+};
+
+// 通过商品id查询商品信息
+var selectGoodsByGoodsid = function(goodsid) {
+	$.ajax({
+		type : "POST",
+		url : "goods/selectGoodsByGoodsid.dx",
+		data : {
+			"goodsid" : goodsid
+		},
+		dataType : "json",
+		async : false,
+		success : function(g) {
+			goods = g;
+		},
+		error : function() {
+			layer.msg("获取商品失败！", {
+				icon : 2
+			});
+		}
+	});
+	return goods;
+}
+
+// 添加销售信息时改变选择商品时触发此方法
+/*
+ * $("#goodsid").change(function() { var goodsidAndUnit = $(this).val(); var
+ * goodsid = goodsidAndUnit.split("-")[0]; price =
+ * selectGoodsByGoodsid(goodsid); $("#price").val(price); gianAmount(); });
+ */
+
+// 删除商品
+function deletegoodsByCid(goodsid) {
+	$.ajax({
+		type : "POST",
+		url : "goods/deleteGoodsByCid.dx?goodsid=" + goodsid,
+		dataType : "json",
+		async : false,
+		success : function(msg) {
+			layer.msg('删除成功', {
+				icon : 1
+			})
+		},
+		error : function() {
+			layer.msg("删除失败", {
+				icon : 2
+			});
+		}
+	});
+
+}
+// 新增商品信息表单
+function addGoodsForm() {
+	layer.open({
+		type : 2,
+		title : '新增商品',
+		content : 'jsp/goods/addGoodsForm.jsp',
+		area : [ '400px', '400px' ],
+		id : '1'
+	});
+}
+
+// 新增商品表单提交
+function submitGoodsForm(data) {
+	$.ajax({
+		type : "post",
+		dataType : 'json',
+		url : 'goods/addGoods.dx',
+		data : data.field,
+		success : function(msg) {
+			if (msg == 1) {
+				layer.msg('新增成功', {
+					icon : 1
+				});
+				parent.table.reload('goodsTableId');
+			} else {
+				layer.msg('失败', {
+					icon : 2
+				});
+			}
+		},
+		error : function() {
+			layer.msg('提交失败,请重新提交', {
+				icon : 5
+			});
+		}
+	})
+}
+
+// 编辑商品信息页面，并自动填写内容
+function editGoods(goodsid) {
+	layer.open({
+		type : 2,
+		title : '编辑单位',
+		content : 'goods/editGoods.dx?goodsid=' + goodsid,
+		area : [ '400px', '400px' ]
+	});
+}
+
+// 提交更新商品信息
+function updateGoods(goods) {
+	$.ajax({
+		type : "post",
+		dataType : 'json',
+		url : 'goods/updateGoods.dx',
+		data : goods,
+		success : function(msg) {
+			if (msg == 1) {
+				// 刷新父页面客户信息数据表格
+				parent.table.reload('goodsTableId');
+				layer.msg('更新成功', {
+					icon : 1
+				});
+			} else {
+				layer.msg('更新失败', {
+					icon : 2
+				});
+			}
+		},
+		error : function() {
+			layer.msg('网络异常，请稍后重试', {
+				icon : 5
+			});
+		}
+	})
+}

@@ -1,0 +1,60 @@
+package com.dx.dxmanage.handler;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dx.dxmanage.po.SP;
+import com.dx.dxmanage.service.ISPService;
+import com.dx.dxmanage.service.ISalesService;
+
+@Controller
+public class SPHandler {
+	@Resource
+	private ISPService spService;
+	@Resource
+	private ISalesService salesService;
+
+	// 新增销售与银行流水的对应记录
+	@RequestMapping("insertSP.dx")
+	@ResponseBody
+	public Map<String, Object> insertSP(@RequestParam(value = "salesids[]") Integer[] salesids,
+			@RequestParam(value = "paymentids[]") Integer[] paymentids) {
+		Map<String, Object> resultMap = new HashMap<>();
+		try {
+			// 将销售记录salesid和银行流水paymentid对应存储
+			SP sp = new SP();
+			if (salesids.length >= paymentids.length) {
+				for (int sid : salesids) {
+					for (int pid : paymentids) {
+						sp.setSalesid(sid);
+						sp.setPaymentid(pid);
+						spService.insertSelective(sp);
+					}
+				}
+			} else {
+				for (int pid : paymentids) {
+					for (int sid : salesids) {
+						sp.setPaymentid(pid);
+						sp.setSalesid(sid);
+						spService.insertSelective(sp);
+					}
+				}
+			}
+			resultMap.put("code", 200);
+			resultMap.put("msg", "核对成功");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			resultMap.put("code", 400);
+			resultMap.put("msg", "核对失败");
+		}
+		return resultMap;
+	}
+}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dx.dxmanage.dao.CredentialsMapper">
+  <resultMap id="BaseResultMap" type="com.dx.dxmanage.po.Credentials">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="salesid" jdbcType="INTEGER" property="salesid" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="str" jdbcType="VARCHAR" property="str" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, salesid, url, str
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from credentials
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from credentials
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.dx.dxmanage.po.Credentials">
+    insert into credentials (id, salesid, url, 
+      str)
+    values (#{id,jdbcType=INTEGER}, #{salesid,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}, 
+      #{str,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.dx.dxmanage.po.Credentials">
+    insert into credentials
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="salesid != null">
+        salesid,
+      </if>
+      <if test="url != null">
+        url,
+      </if>
+      <if test="str != null">
+        str,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="salesid != null">
+        #{salesid,jdbcType=INTEGER},
+      </if>
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="str != null">
+        #{str,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.dx.dxmanage.po.Credentials">
+    update credentials
+    <set>
+      <if test="salesid != null">
+        salesid = #{salesid,jdbcType=INTEGER},
+      </if>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="str != null">
+        str = #{str,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.dx.dxmanage.po.Credentials">
+    update credentials
+    set salesid = #{salesid,jdbcType=INTEGER},
+      url = #{url,jdbcType=VARCHAR},
+      str = #{str,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

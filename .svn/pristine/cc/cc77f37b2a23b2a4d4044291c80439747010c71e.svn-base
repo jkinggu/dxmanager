@@ -1,0 +1,17 @@
+package com.dx.dxmanage.dao;
+
+import com.dx.dxmanage.po.Credentials;
+
+public interface CredentialsMapper {
+    int deleteByPrimaryKey(Integer id);
+
+    int insert(Credentials record);
+
+    int insertSelective(Credentials record);
+
+    Credentials selectByPrimaryKey(Integer id);
+
+    int updateByPrimaryKeySelective(Credentials record);
+
+    int updateByPrimaryKey(Credentials record);
+}

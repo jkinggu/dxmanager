@@ -1,0 +1,23 @@
+package com.dx.dxmanage.service.impl;
+
+import java.util.Set;
+
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.dx.dxmanage.dao.RoleMapper;
+import com.dx.dxmanage.service.IRoleService;
+
+@Service
+public class RoleServiceImpl implements IRoleService {
+@Resource
+private RoleMapper roleMapper;
+	@Override
+	public Set<String> selectRoleByUserId(Long id) {
+		// TODO Auto-generated method stub
+		return roleMapper.selectRoleByUserId(id);
+	}
+
+}

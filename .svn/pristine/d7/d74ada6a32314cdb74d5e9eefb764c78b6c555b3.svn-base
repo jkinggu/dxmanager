@@ -1,0 +1,57 @@
+package com.dx.dxmanage.dao;
+
+import java.util.List;
+
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.dx.dxmanage.po.Customer;
+import com.dx.dxmanage.po.Sales;
+
+public interface CustomerMapper {
+	// 根据主键（客户id）删除客户信息
+	int deleteByPrimaryKey(Integer customerid);
+
+	// 添加单位信息
+	int insertSelective(Customer record);
+
+	// 更新客户信息
+	int updateCustomer(Customer record);
+
+	// 根据客户id查询客户信息
+	Customer selectByCustomerid(Integer customerid);
+
+	// 查询所有县区
+	List<String> selectMembership();
+	// 查询所有客户
+	List<Customer> selectAllCustomer();
+
+	// 根据单位代码或单位名称查询单位信息
+	List<Customer> selectCustomerByCodeOrName(String codeOrName);
+
+	// 根据单位代码或单位名称和membership查询单位信息
+	List<Customer> selectCustomerByCodeOrNameAndMembership(@Param("codeOrName") String codeOrName,
+			@Param("membership") String membership);
+
+	// 根据membership查询单位信息
+	List<Customer> selectCustomerByMembership(String membership);
+
+	// 查询一级单位（membership）
+	List<Customer> selectAllMembership();
+
+	// 查询子级单位
+	List<Customer> selectDanwei2(String membership);
+
+	// 查询三级单位
+	List<Customer> selectDanwei3(Map paramMap);
+
+	// 查询四级单位
+	List<Customer> selectDanwei4(Map paramMap);
+
+	// 根据单位代码和单位所属地市查询单位的交易记录
+	List<Sales> queryByCodeAndShip(Map paramMap);
+
+	// 通过单位名称模糊查找单位
+	List<Customer> selectByDimCustomername(String customername);
+}
